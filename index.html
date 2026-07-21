@@ -4,8 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Clementine</title>
-    <link rel="icon" href="icone/ma.png" type="image/png" />
-    <link rel="apple-touch-icon" href="img/icone/ma.png" />
+    <link rel="icon" href="img/clementine-icon.png" type="image/png" />
+    <link rel="apple-touch-icon" href="img/clementine-icon.png" />
     <style>
       * {
         margin: 0;
@@ -42,7 +42,11 @@
       .vignette {
         position: fixed;
         inset: 0;
-        background: radial-gradient(ellipse 80% 80% at 50% 50%, transparent 30%, #000408 100%);
+        background: radial-gradient(
+          ellipse 80% 80% at 50% 50%,
+          transparent 30%,
+          #000408 100%
+        );
         pointer-events: none;
         z-index: 0;
       }
@@ -276,7 +280,12 @@
       .projector-base {
         width: 120px;
         height: 6px;
-        background: linear-gradient(to right, transparent, rgba(0, 210, 255, 0.6), transparent);
+        background: linear-gradient(
+          to right,
+          transparent,
+          rgba(0, 210, 255, 0.6),
+          transparent
+        );
         border-radius: 50%;
         margin-top: 8px;
         box-shadow:
@@ -288,7 +297,11 @@
       .projector-beam {
         width: 360px;
         height: 30px;
-        background: linear-gradient(to bottom, rgba(0, 210, 255, 0.02), transparent);
+        background: linear-gradient(
+          to bottom,
+          rgba(0, 210, 255, 0.02),
+          transparent
+        );
         clip-path: polygon(30% 0%, 70% 0%, 100% 100%, 0% 100%);
         pointer-events: none;
       }
@@ -381,7 +394,11 @@
       /* Painel de vidro futurista */
       .glass-panel {
         position: relative;
-        background: linear-gradient(160deg, rgba(0, 40, 65, 0.28), rgba(0, 12, 25, 0.2));
+        background: linear-gradient(
+          160deg,
+          rgba(0, 40, 65, 0.28),
+          rgba(0, 12, 25, 0.2)
+        );
         backdrop-filter: blur(9px);
         -webkit-backdrop-filter: blur(9px);
         border: 1px solid rgba(0, 210, 255, 0.3);
@@ -615,8 +632,8 @@
         box-shadow: inset 0 0 30px rgba(0, 180, 255, 0.06);
       }
 
-      /* Janela recolhível — Controlo Financeiro */
-      .fin-wrap {
+      /* Janela recolhível — Controlo de Saúde */
+      .health-wrap {
         position: relative;
         z-index: 10;
         display: flex;
@@ -624,48 +641,89 @@
         margin-top: 26px;
         padding-bottom: 40px;
       }
-      .fin-panel {
-        width: 940px;
+      .health-panel {
+        width: 620px;
         max-width: 94vw;
-        /* backdrop-filter num ancestral de <iframe> fá-lo renderizar em branco no
-     Chromium — usa-se um fundo sólido translúcido em vez do blur do glass-panel */
-        backdrop-filter: none;
-        -webkit-backdrop-filter: none;
-        background: linear-gradient(160deg, rgba(0, 26, 44, 0.94), rgba(0, 10, 20, 0.94));
       }
-      .fin-toggle {
+      .health-toggle {
         cursor: pointer;
         user-select: none;
       }
-      .fin-toggle:hover .gp-title {
+      .health-toggle:hover .gp-title {
         color: rgba(120, 235, 255, 1);
       }
-      .fin-chevron {
+      .health-chevron {
         margin-left: auto;
         font-size: 12px;
         color: rgba(0, 220, 255, 0.8);
         text-shadow: 0 0 8px rgba(0, 210, 255, 0.7);
         transition: transform 0.28s ease;
       }
-      .fin-panel.collapsed .fin-chevron {
+      .health-panel.collapsed .health-chevron {
         transform: rotate(-90deg);
       }
-      .fin-body {
-        height: 640px;
+      .health-body {
         overflow: hidden;
         opacity: 1;
         transition: opacity 0.3s ease;
       }
-      .fin-panel.collapsed .fin-body {
-        height: 0;
+      .health-panel.collapsed .health-body {
+        max-height: 0;
         opacity: 0;
+        padding-top: 0;
+        padding-bottom: 0;
       }
-      .fin-frame {
-        width: 100%;
-        height: 640px;
-        border: none;
-        background: transparent;
-        display: block;
+      /* Grelha de atalhos */
+      .health-links {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+        padding: 16px 14px;
+      }
+      .health-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 8px;
+        padding: 22px 14px;
+        text-decoration: none;
+        background: rgba(0, 180, 255, 0.05);
+        border: 1px solid rgba(0, 210, 255, 0.22);
+        border-radius: 6px;
+        transition:
+          border-color 0.18s,
+          background 0.18s,
+          transform 0.18s,
+          box-shadow 0.18s;
+      }
+      .health-card:hover {
+        border-color: rgba(0, 220, 255, 0.7);
+        background: rgba(0, 180, 255, 0.12);
+        transform: translateY(-3px);
+        box-shadow: 0 0 22px rgba(0, 180, 255, 0.25);
+      }
+      .health-card .hc-icon {
+        font-size: 30px;
+        filter: drop-shadow(0 0 8px rgba(0, 210, 255, 0.7));
+      }
+      .health-card .hc-title {
+        font-size: 12px;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: rgba(0, 220, 255, 0.9);
+        text-shadow: 0 0 8px rgba(0, 210, 255, 0.5);
+      }
+      .health-card .hc-desc {
+        font-size: 10px;
+        letter-spacing: 0.08em;
+        color: rgba(180, 225, 255, 0.6);
+        line-height: 1.5;
+      }
+      @media (max-width: 560px) {
+        .health-links {
+          grid-template-columns: 1fr;
+        }
       }
 
       @media (max-width: 1200px) {
@@ -703,23 +761,43 @@
             <!-- Cantos -->
             <div class="corner tl">
               <svg viewBox="0 0 28 28" fill="none">
-                <path d="M2 20 L2 2 L20 2" stroke="rgba(0,210,255,0.9)" stroke-width="2" />
-                <path d="M2 2 L8 2" stroke="rgba(0,210,255,0.4)" stroke-width="1" />
+                <path
+                  d="M2 20 L2 2 L20 2"
+                  stroke="rgba(0,210,255,0.9)"
+                  stroke-width="2"
+                />
+                <path
+                  d="M2 2 L8 2"
+                  stroke="rgba(0,210,255,0.4)"
+                  stroke-width="1"
+                />
               </svg>
             </div>
             <div class="corner tr">
               <svg viewBox="0 0 28 28" fill="none">
-                <path d="M2 20 L2 2 L20 2" stroke="rgba(0,210,255,0.9)" stroke-width="2" />
+                <path
+                  d="M2 20 L2 2 L20 2"
+                  stroke="rgba(0,210,255,0.9)"
+                  stroke-width="2"
+                />
               </svg>
             </div>
             <div class="corner bl">
               <svg viewBox="0 0 28 28" fill="none">
-                <path d="M2 20 L2 2 L20 2" stroke="rgba(0,210,255,0.9)" stroke-width="2" />
+                <path
+                  d="M2 20 L2 2 L20 2"
+                  stroke="rgba(0,210,255,0.9)"
+                  stroke-width="2"
+                />
               </svg>
             </div>
             <div class="corner br">
               <svg viewBox="0 0 28 28" fill="none">
-                <path d="M2 20 L2 2 L20 2" stroke="rgba(0,210,255,0.9)" stroke-width="2" />
+                <path
+                  d="M2 20 L2 2 L20 2"
+                  stroke="rgba(0,210,255,0.9)"
+                  stroke-width="2"
+                />
               </svg>
             </div>
 
@@ -748,7 +826,9 @@
               <span class="gp-title">Notícias</span>
               <span class="gp-meta" id="news-meta"></span>
             </div>
-            <div class="gp-body" id="news-body"><div class="gp-empty">A carregar…</div></div>
+            <div class="gp-body" id="news-body">
+              <div class="gp-empty">A carregar…</div>
+            </div>
           </div>
 
           <div class="glass-panel">
@@ -757,27 +837,34 @@
               <span class="gp-title">Tarefas</span>
               <span class="gp-meta" id="tasks-meta"></span>
             </div>
-            <div class="gp-body" id="tasks-body"><div class="gp-empty">A carregar…</div></div>
+            <div class="gp-body" id="tasks-body">
+              <div class="gp-empty">A carregar…</div>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- ═══ CONTROLO FINANCEIRO — janela recolhível ═══ -->
-      <div class="fin-wrap">
-        <div class="glass-panel fin-panel collapsed" id="finPanel">
-          <div class="gp-header fin-toggle" onclick="toggleFin()">
-            <span class="gp-icon">💶</span>
-            <span class="gp-title">Controlo Financeiro</span>
-            <span class="fin-chevron" id="finChevron">▼</span>
+      <!-- ═══ CONTROLO DE SAÚDE — janela recolhível ═══ -->
+      <div class="health-wrap">
+        <div class="glass-panel health-panel" id="healthPanel">
+          <div class="gp-header health-toggle" onclick="toggleHealth()">
+            <span class="gp-icon">🏥</span>
+            <span class="gp-title">Controlo de Saúde</span>
+            <span class="health-chevron" id="healthChevron">▼</span>
           </div>
-          <div class="fin-body">
-            <iframe
-              class="fin-frame"
-              id="finFrame"
-              data-src="../office/controle-financeiro.html"
-              title="Controlo Financeiro"
-              loading="lazy"
-            ></iframe>
+          <div class="health-body">
+            <div class="health-links">
+              <a class="health-card" href="html/saude.html">
+                <span class="hc-icon">🏥</span>
+                <span class="hc-title">Saúde</span>
+                <span class="hc-desc">Histórico da família + PDF</span>
+              </a>
+              <a class="health-card" href="html/gerar_saude.html">
+                <span class="hc-icon">🔄</span>
+                <span class="hc-title">Gerar Saúde</span>
+                <span class="hc-desc">Atualizar o saude.json</span>
+              </a>
+            </div>
           </div>
         </div>
       </div>
@@ -828,7 +915,8 @@
         const mCtx = mCanvas.getContext("2d");
         mCanvas.width = 180;
         mCanvas.height = 640;
-        const chars = "アカサタナハマヤラワ0123456789ABCDEFGHKLMNPRSTXZ<>*+#".split("");
+        const chars =
+          "アカサタナハマヤラワ0123456789ABCDEFGHKLMNPRSTXZ<>*+#".split("");
         const fontSize = 14;
         const cols = Math.floor(mCanvas.width / fontSize);
         const rows = mCanvas.height / fontSize;
@@ -841,11 +929,20 @@
             const x = i * fontSize + 3;
             // cabeça brilhante
             mCtx.fillStyle = "rgba(200, 250, 255, 0.95)";
-            mCtx.fillText(chars[Math.floor(Math.random() * chars.length)], x, y * fontSize);
+            mCtx.fillText(
+              chars[Math.floor(Math.random() * chars.length)],
+              x,
+              y * fontSize,
+            );
             // rasto ciano
             mCtx.fillStyle = "rgba(0, 210, 255, 0.6)";
-            mCtx.fillText(chars[Math.floor(Math.random() * chars.length)], x, (y - 1) * fontSize);
-            if (y * fontSize > mCanvas.height && Math.random() > 0.965) drops[i] = 0;
+            mCtx.fillText(
+              chars[Math.floor(Math.random() * chars.length)],
+              x,
+              (y - 1) * fontSize,
+            );
+            if (y * fontSize > mCanvas.height && Math.random() > 0.965)
+              drops[i] = 0;
             drops[i] += 0.35;
           });
           requestAnimationFrame(drawMatrix);
@@ -872,7 +969,8 @@
         "MODE: IDLE",
       ];
       function genData(el, n) {
-        const pick = () => dataLines[Math.floor(Math.random() * dataLines.length)];
+        const pick = () =>
+          dataLines[Math.floor(Math.random() * dataLines.length)];
         el.innerHTML = Array.from({ length: n }, pick).join("<br>");
       }
       const _L = document.getElementById("dataLeft");
@@ -895,11 +993,19 @@
       }
 
       // ── JSONBin (mesmos bins do Home) ──
-      const JB_KEY = "$2a$10$NktkUyYCYMW7zQ3kcKosh.ZPUZnFK0aF/1ZQJYWheaGRzGbtZJSvi";
-      const JB_HDR = { "Content-Type": "application/json", "X-Master-Key": JB_KEY };
+      const JB_KEY =
+        "$2a$10$NktkUyYCYMW7zQ3kcKosh.ZPUZnFK0aF/1ZQJYWheaGRzGbtZJSvi";
+      const JB_HDR = {
+        "Content-Type": "application/json",
+        "X-Master-Key": JB_KEY,
+      };
       const JB_TAREFAS = "https://api.jsonbin.io/v3/b/6a32f2e3f5f4af5e2903f81c";
       const JB_NEWS = "https://api.jsonbin.io/v3/b/6a34ed84da38895dfedbf6b4";
-      const dataStr = new Date().toLocaleDateString("pt-PT", { day: "2-digit", month: "long", year: "numeric" });
+      const dataStr = new Date().toLocaleDateString("pt-PT", {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+      });
 
       // ── Notícias ──
       async function carregarNoticias() {
@@ -909,7 +1015,8 @@
           const r = await fetch(JB_NEWS + "/latest", { headers: JB_HDR });
           const n = (await r.json()).record;
           if (!n || !n.itens || !n.itens.length) {
-            body.innerHTML = '<div class="gp-empty">Sem notícias para hoje</div>';
+            body.innerHTML =
+              '<div class="gp-empty">Sem notícias para hoje</div>';
             return;
           }
           body.innerHTML = n.itens
@@ -936,7 +1043,8 @@
           document.getElementById("tasks-meta").textContent =
             `${tarefas.length} pendente${tarefas.length !== 1 ? "s" : ""}`;
           if (!tarefas.length) {
-            body.innerHTML = '<div class="gp-empty">Nenhuma tarefa pendente</div>';
+            body.innerHTML =
+              '<div class="gp-empty">Nenhuma tarefa pendente</div>';
             return;
           }
           body.innerHTML = tarefas
@@ -953,15 +1061,9 @@
         }
       }
 
-      // ── Controlo Financeiro (janela recolhível) ──
-      // O iframe só carrega quando o painel é aberto pela primeira vez.
-      function toggleFin() {
-        const panel = document.getElementById("finPanel");
-        const frame = document.getElementById("finFrame");
-        panel.classList.toggle("collapsed");
-        if (!panel.classList.contains("collapsed") && !frame.src) {
-          frame.src = frame.dataset.src;
-        }
+      // ── Controlo de Saúde (janela recolhível) ──
+      function toggleHealth() {
+        document.getElementById("healthPanel").classList.toggle("collapsed");
       }
 
       carregarNoticias();
@@ -977,7 +1079,8 @@
           const day = now.getDay(); // 0=Dom 1-5=Seg-Sex 6=Sab
           const h = now.getHours();
           if (day === 6) return null; // Sábado — silêncio
-          if (day === 0) return h >= 14 && h < 22 ? MP3 + "luna.bom.dia.mp3" : null;
+          if (day === 0)
+            return h >= 14 && h < 22 ? MP3 + "luna.bom.dia.mp3" : null;
           // Seg–Sex
           if (h >= 8 && h < 11) return MP3 + "luna.bom.dia.mp3";
           else if (h >= 11 && h < 12) return MP3 + "luna.whatasapp.mp3";
@@ -988,14 +1091,40 @@
 
         function slotKey(now) {
           const h = now.getHours();
-          const band = h < 8 ? 0 : h < 11 ? 8 : h < 12 ? 11 : h < 14 ? 12 : h < 22 ? 14 : 22;
+          const band =
+            h < 8
+              ? 0
+              : h < 11
+                ? 8
+                : h < 12
+                  ? 11
+                  : h < 14
+                    ? 12
+                    : h < 22
+                      ? 14
+                      : 22;
           return `${now.getDay()}:${band}`;
         }
 
         const POINT_TRIGGERS = [
-          { key: "cafe", days: [0, 1, 2, 3, 4, 5, 6], h: 16, audio: MP3 + "luna.cafe.mp3" },
-          { key: "mkt-15", days: [3, 5], h: 15, audio: MP3 + "luna.marketing.mp3" },
-          { key: "mkt-18", days: [3, 5], h: 18, audio: MP3 + "luna.marketing.mp3" },
+          {
+            key: "cafe",
+            days: [0, 1, 2, 3, 4, 5, 6],
+            h: 16,
+            audio: MP3 + "luna.cafe.mp3",
+          },
+          {
+            key: "mkt-15",
+            days: [3, 5],
+            h: 15,
+            audio: MP3 + "luna.marketing.mp3",
+          },
+          {
+            key: "mkt-18",
+            days: [3, 5],
+            h: 18,
+            audio: MP3 + "luna.marketing.mp3",
+          },
         ];
         const firedAt = new Map();
 
