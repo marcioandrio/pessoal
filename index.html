@@ -1,0 +1,1055 @@
+<!doctype html>
+<html lang="pt">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Clementine</title>
+    <link rel="icon" href="icone/ma.png" type="image/png" />
+    <link rel="apple-touch-icon" href="img/icone/ma.png" />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        background: #000408;
+        width: 100vw;
+        height: 100vh;
+        overflow: hidden;
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        padding-top: 50px;
+        overflow-y: auto;
+        font-family: "Courier New", monospace;
+      }
+
+      /* Fundo com grade sci-fi */
+      .bg-grid {
+        position: fixed;
+        inset: 0;
+        background-image:
+          linear-gradient(rgba(0, 180, 220, 0.04) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(0, 180, 220, 0.04) 1px, transparent 1px);
+        background-size: 50px 50px;
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      /* Vignette */
+      .vignette {
+        position: fixed;
+        inset: 0;
+        background: radial-gradient(ellipse 80% 80% at 50% 50%, transparent 30%, #000408 100%);
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      /* Canvas partículas */
+      #particles {
+        position: fixed;
+        inset: 0;
+        z-index: 1;
+        pointer-events: none;
+        opacity: 0.5;
+      }
+
+      /* Contentor principal */
+      .holo-stage {
+        position: relative;
+        z-index: 10;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      /* Moldura sci-fi em volta do vídeo */
+      .holo-frame {
+        position: relative;
+        width: 360px;
+        height: 640px;
+      }
+
+      /* Cantos decorativos */
+      .corner {
+        position: absolute;
+        width: 28px;
+        height: 28px;
+        z-index: 20;
+      }
+      .corner svg {
+        width: 100%;
+        height: 100%;
+      }
+      .corner.tl {
+        top: -4px;
+        left: -4px;
+      }
+      .corner.tr {
+        top: -4px;
+        right: -4px;
+        transform: scaleX(-1);
+      }
+      .corner.bl {
+        bottom: -4px;
+        left: -4px;
+        transform: scaleY(-1);
+      }
+      .corner.br {
+        bottom: -4px;
+        right: -4px;
+        transform: scale(-1);
+      }
+
+      /* Glow exterior */
+      .holo-outer-glow {
+        position: absolute;
+        inset: -30px;
+        border-radius: 8px;
+        background: radial-gradient(
+          ellipse at center,
+          rgba(0, 210, 255, 0.08) 0%,
+          rgba(0, 150, 220, 0.04) 50%,
+          transparent 75%
+        );
+        pointer-events: none;
+        animation: outerPulse 4s ease-in-out infinite;
+      }
+
+      @keyframes outerPulse {
+        0%,
+        100% {
+          opacity: 0.6;
+        }
+        50% {
+          opacity: 1;
+        }
+      }
+
+      /* Wrapper do vídeo */
+      .video-wrap {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+        border-radius: 4px;
+      }
+
+      /* Vídeo com efeito holográfico */
+      video {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        animation: videoFlicker 8s ease-in-out infinite;
+
+        /* ►► TRANSPARÊNCIA DA FOTO/VÍDEO ◄◄
+     Para deixar a foto mais transparente, tira o comentário da linha abaixo
+     e ajusta o valor: 1 = opaco (normal), 0.5 = meio transparente, 0.2 = quase invisível.
+     (Nota: isto sobrepõe-se ao efeito de "flicker" acima.) */
+        opacity: 0.5 !important; /**/
+      }
+
+      @keyframes videoFlicker {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        93% {
+          opacity: 0.85;
+        }
+        94% {
+          opacity: 1;
+        }
+        96% {
+          opacity: 0.9;
+        }
+        97% {
+          opacity: 1;
+        }
+      }
+
+      .scanlines {
+        display: none;
+      }
+
+      /* Linha de scan animada */
+      .scan-beam {
+        position: absolute;
+        left: 0;
+        right: 0;
+        height: 120px;
+        background: linear-gradient(
+          to bottom,
+          transparent,
+          rgba(0, 220, 255, 0.04) 30%,
+          rgba(0, 220, 255, 0.08) 50%,
+          rgba(0, 220, 255, 0.04) 70%,
+          transparent
+        );
+        pointer-events: none;
+        z-index: 3;
+        animation: scanBeam 5s linear infinite;
+      }
+
+      @keyframes scanBeam {
+        0% {
+          top: -120px;
+        }
+        100% {
+          top: 100%;
+        }
+      }
+
+      /* Aberração cromática */
+      .chromatic {
+        position: absolute;
+        inset: 0;
+        border-radius: 4px;
+        pointer-events: none;
+        z-index: 4;
+        animation: chromaShift 6s ease-in-out infinite;
+        opacity: 0;
+      }
+
+      @keyframes chromaShift {
+        0%,
+        88%,
+        100% {
+          opacity: 0;
+        }
+        90% {
+          opacity: 1;
+          box-shadow:
+            inset 2px 0 0 rgba(255, 0, 60, 0.3),
+            inset -2px 0 0 rgba(0, 255, 220, 0.3);
+        }
+        93% {
+          opacity: 0;
+        }
+      }
+
+      /* Glow interno */
+      .inner-glow {
+        position: absolute;
+        inset: 0;
+        border-radius: 4px;
+        box-shadow:
+          inset 0 0 40px rgba(0, 200, 255, 0.12),
+          inset 0 0 2px rgba(0, 220, 255, 0.6);
+        pointer-events: none;
+        z-index: 5;
+      }
+
+      /* Borda luminosa */
+      .border-glow {
+        position: absolute;
+        inset: -1px;
+        border-radius: 5px;
+        border: 1px solid rgba(0, 210, 255, 0.5);
+        box-shadow:
+          0 0 8px rgba(0, 210, 255, 0.5),
+          0 0 20px rgba(0, 210, 255, 0.2),
+          inset 0 0 8px rgba(0, 210, 255, 0.1);
+        pointer-events: none;
+        z-index: 6;
+        animation: borderPulse 3s ease-in-out infinite;
+      }
+
+      @keyframes borderPulse {
+        0%,
+        100% {
+          box-shadow:
+            0 0 8px rgba(0, 210, 255, 0.5),
+            0 0 20px rgba(0, 210, 255, 0.2),
+            inset 0 0 8px rgba(0, 210, 255, 0.1);
+        }
+        50% {
+          box-shadow:
+            0 0 14px rgba(0, 210, 255, 0.8),
+            0 0 35px rgba(0, 210, 255, 0.3),
+            inset 0 0 12px rgba(0, 210, 255, 0.15);
+        }
+      }
+
+      /* Base do projector */
+      .projector-base {
+        width: 120px;
+        height: 6px;
+        background: linear-gradient(to right, transparent, rgba(0, 210, 255, 0.6), transparent);
+        border-radius: 50%;
+        margin-top: 8px;
+        box-shadow:
+          0 0 20px rgba(0, 210, 255, 0.5),
+          0 0 40px rgba(0, 210, 255, 0.2);
+        animation: basePulse 2s ease-in-out infinite;
+      }
+
+      .projector-beam {
+        width: 360px;
+        height: 30px;
+        background: linear-gradient(to bottom, rgba(0, 210, 255, 0.02), transparent);
+        clip-path: polygon(30% 0%, 70% 0%, 100% 100%, 0% 100%);
+        pointer-events: none;
+      }
+
+      @keyframes basePulse {
+        0%,
+        100% {
+          opacity: 0.7;
+        }
+        50% {
+          opacity: 1;
+        }
+      }
+
+      /* Nome */
+      .holo-name {
+        margin-top: 20px;
+        font-size: 11px;
+        letter-spacing: 0.5em;
+        text-transform: uppercase;
+        color: rgba(0, 210, 255, 0.7);
+        text-shadow: 0 0 10px rgba(0, 210, 255, 0.8);
+        animation: namePulse 3s ease-in-out infinite;
+      }
+
+      @keyframes namePulse {
+        0%,
+        100% {
+          opacity: 0.6;
+        }
+        50% {
+          opacity: 1;
+        }
+      }
+
+      /* Dados laterais */
+      .holo-data {
+        position: absolute;
+        top: 60px;
+        font-size: 8px;
+        color: rgba(0, 200, 255, 0.4);
+        letter-spacing: 0.1em;
+        line-height: 1.8;
+        text-shadow: 0 0 6px rgba(0, 200, 255, 0.5);
+        animation: dataScroll 0.1s steps(1) infinite;
+        user-select: none;
+      }
+
+      .holo-data.left {
+        right: calc(100% + 20px);
+        text-align: right;
+      }
+      .holo-data.right {
+        left: calc(100% + 20px);
+      }
+
+      @keyframes dataScroll {
+        0% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.7;
+        }
+      }
+
+      /* ═══════════ LAYOUT COM PAINÉIS FLUTUANTES ═══════════ */
+      .main-col {
+        position: relative;
+        z-index: 10;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      .layout {
+        position: relative;
+        z-index: 10;
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        gap: 90px; /* distância entre a foto e as janelas laterais */
+      }
+      .holo-col {
+        display: flex;
+        flex-direction: column;
+        gap: 22px;
+        width: 300px;
+        margin-top: 10px;
+      }
+
+      /* Painel de vidro futurista */
+      .glass-panel {
+        position: relative;
+        background: linear-gradient(160deg, rgba(0, 40, 65, 0.28), rgba(0, 12, 25, 0.2));
+        backdrop-filter: blur(9px);
+        -webkit-backdrop-filter: blur(9px);
+        border: 1px solid rgba(0, 210, 255, 0.3);
+        border-radius: 6px;
+        box-shadow:
+          0 0 20px rgba(0, 150, 220, 0.14),
+          inset 0 0 22px rgba(0, 180, 255, 0.05);
+        overflow: hidden;
+        animation: panelPulse 4s ease-in-out infinite;
+      }
+      @keyframes panelPulse {
+        0%,
+        100% {
+          border-color: rgba(0, 210, 255, 0.28);
+          box-shadow:
+            0 0 18px rgba(0, 150, 220, 0.12),
+            inset 0 0 22px rgba(0, 180, 255, 0.05);
+        }
+        50% {
+          border-color: rgba(0, 210, 255, 0.5);
+          box-shadow:
+            0 0 26px rgba(0, 180, 255, 0.22),
+            inset 0 0 26px rgba(0, 180, 255, 0.08);
+        }
+      }
+      /* Cantos luminosos dos painéis */
+      .glass-panel::before,
+      .glass-panel::after {
+        content: "";
+        position: absolute;
+        width: 14px;
+        height: 14px;
+        border: 1px solid rgba(0, 220, 255, 0.85);
+        z-index: 3;
+        pointer-events: none;
+      }
+      .glass-panel::before {
+        top: 5px;
+        left: 5px;
+        border-right: none;
+        border-bottom: none;
+      }
+      .glass-panel::after {
+        bottom: 5px;
+        right: 5px;
+        border-left: none;
+        border-top: none;
+      }
+
+      .gp-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 14px;
+        border-bottom: 1px solid rgba(0, 210, 255, 0.2);
+        background: rgba(0, 180, 255, 0.05);
+      }
+      .gp-header .gp-icon {
+        font-size: 13px;
+        filter: drop-shadow(0 0 4px rgba(0, 210, 255, 0.7));
+      }
+      .gp-header .gp-title {
+        font-size: 11px;
+        letter-spacing: 0.28em;
+        text-transform: uppercase;
+        color: rgba(0, 220, 255, 0.85);
+        text-shadow: 0 0 8px rgba(0, 210, 255, 0.7);
+      }
+      .gp-header .gp-meta {
+        margin-left: auto;
+        font-size: 8px;
+        letter-spacing: 0.1em;
+        color: rgba(0, 200, 255, 0.45);
+      }
+      .gp-body {
+        max-height: 250px;
+        overflow-y: auto;
+        padding: 10px 14px;
+        color: rgba(180, 230, 255, 0.85);
+        font-size: 11px;
+        line-height: 1.6;
+      }
+      .gp-body::-webkit-scrollbar {
+        width: 4px;
+      }
+      .gp-body::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      .gp-body::-webkit-scrollbar-thumb {
+        background: rgba(0, 210, 255, 0.3);
+        border-radius: 4px;
+      }
+
+      .gp-empty {
+        text-align: center;
+        color: rgba(0, 200, 255, 0.4);
+        padding: 20px 0;
+        font-size: 11px;
+      }
+
+      /* Notícias */
+      .gp-news-item {
+        margin-bottom: 12px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid rgba(0, 210, 255, 0.12);
+      }
+      .gp-news-item:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+      }
+      .gp-news-item .n-tit {
+        color: rgba(0, 220, 255, 0.9);
+        font-weight: bold;
+        margin-bottom: 3px;
+        text-shadow: 0 0 5px rgba(0, 210, 255, 0.4);
+      }
+      .gp-news-item .n-tit a {
+        color: inherit;
+        text-decoration: none;
+      }
+      .gp-news-item .n-tit a:hover {
+        text-decoration: underline;
+      }
+      .gp-news-item .n-txt {
+        color: rgba(180, 225, 255, 0.75);
+        font-size: 10.5px;
+      }
+      .gp-news-item .n-src {
+        color: rgba(0, 200, 255, 0.4);
+        font-size: 9px;
+        margin-top: 3px;
+      }
+
+      /* Tarefas */
+      .gp-task {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 7px 8px;
+        margin-bottom: 5px;
+        background: rgba(0, 180, 255, 0.04);
+        border: 1px solid rgba(0, 210, 255, 0.12);
+        border-radius: 4px;
+      }
+      .gp-task .t-prio {
+        flex-shrink: 0;
+      }
+      .gp-task .t-txt {
+        flex: 1;
+        color: rgba(190, 230, 255, 0.9);
+      }
+
+      /* Horários */
+      .gp-sched {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+      .gp-sched-card {
+        background: rgba(0, 180, 255, 0.05);
+        border: 1px solid rgba(0, 210, 255, 0.18);
+        border-radius: 5px;
+        padding: 8px 10px;
+        text-align: center;
+      }
+      .gp-sched-card .s-time {
+        font-size: 15px;
+        color: rgba(0, 220, 255, 0.95);
+        text-shadow: 0 0 8px rgba(0, 210, 255, 0.6);
+        letter-spacing: 0.05em;
+      }
+      .gp-sched-card .s-label {
+        font-size: 10px;
+        color: rgba(190, 230, 255, 0.85);
+        margin-top: 2px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+      .gp-sched-card .s-days {
+        font-size: 8px;
+        color: rgba(0, 200, 255, 0.45);
+        margin-top: 3px;
+      }
+
+      /* Áudios */
+      .gp-audio {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 10px;
+        margin-bottom: 6px;
+        background: rgba(0, 180, 255, 0.04);
+        border: 1px solid rgba(0, 210, 255, 0.15);
+        border-radius: 5px;
+        cursor: pointer;
+        transition:
+          border-color 0.15s,
+          background 0.15s;
+      }
+      .gp-audio:hover {
+        border-color: rgba(0, 220, 255, 0.5);
+        background: rgba(0, 180, 255, 0.1);
+      }
+      .gp-audio .a-play {
+        width: 26px;
+        height: 26px;
+        flex-shrink: 0;
+        border-radius: 50%;
+        border: 1px solid rgba(0, 220, 255, 0.6);
+        background: rgba(0, 180, 255, 0.1);
+        color: rgba(0, 220, 255, 0.9);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        box-shadow: 0 0 8px rgba(0, 210, 255, 0.3);
+      }
+      .gp-audio .a-name {
+        color: rgba(190, 230, 255, 0.9);
+        letter-spacing: 0.08em;
+      }
+
+      /* Matrix ao lado da foto */
+      .matrix-col {
+        width: 180px;
+        height: 640px;
+        margin-top: 10px;
+        border: 1px solid rgba(0, 210, 255, 0.18);
+        border-radius: 6px;
+        background: rgba(0, 10, 25, 0.25);
+        box-shadow: inset 0 0 30px rgba(0, 180, 255, 0.06);
+      }
+
+      /* Janela recolhível — Controlo Financeiro */
+      .fin-wrap {
+        position: relative;
+        z-index: 10;
+        display: flex;
+        justify-content: center;
+        margin-top: 26px;
+        padding-bottom: 40px;
+      }
+      .fin-panel {
+        width: 940px;
+        max-width: 94vw;
+        /* backdrop-filter num ancestral de <iframe> fá-lo renderizar em branco no
+     Chromium — usa-se um fundo sólido translúcido em vez do blur do glass-panel */
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+        background: linear-gradient(160deg, rgba(0, 26, 44, 0.94), rgba(0, 10, 20, 0.94));
+      }
+      .fin-toggle {
+        cursor: pointer;
+        user-select: none;
+      }
+      .fin-toggle:hover .gp-title {
+        color: rgba(120, 235, 255, 1);
+      }
+      .fin-chevron {
+        margin-left: auto;
+        font-size: 12px;
+        color: rgba(0, 220, 255, 0.8);
+        text-shadow: 0 0 8px rgba(0, 210, 255, 0.7);
+        transition: transform 0.28s ease;
+      }
+      .fin-panel.collapsed .fin-chevron {
+        transform: rotate(-90deg);
+      }
+      .fin-body {
+        height: 640px;
+        overflow: hidden;
+        opacity: 1;
+        transition: opacity 0.3s ease;
+      }
+      .fin-panel.collapsed .fin-body {
+        height: 0;
+        opacity: 0;
+      }
+      .fin-frame {
+        width: 100%;
+        height: 640px;
+        border: none;
+        background: transparent;
+        display: block;
+      }
+
+      @media (max-width: 1200px) {
+        .layout {
+          flex-wrap: wrap;
+        }
+        .holo-col {
+          width: 340px;
+        }
+        .matrix-col {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="bg-grid"></div>
+    <div class="vignette"></div>
+    <canvas id="particles"></canvas>
+
+    <div class="main-col">
+      <div class="layout">
+        <!-- ═══ MATRIX (esquerda da foto) ═══ -->
+        <canvas id="matrix" class="matrix-col"></canvas>
+
+        <div class="holo-stage">
+          <!-- Dados laterais esquerda -->
+          <div class="holo-data left" id="dataLeft"></div>
+          <!-- Dados laterais direita -->
+          <div class="holo-data right" id="dataRight"></div>
+
+          <div class="holo-frame">
+            <div class="holo-outer-glow"></div>
+
+            <!-- Cantos -->
+            <div class="corner tl">
+              <svg viewBox="0 0 28 28" fill="none">
+                <path d="M2 20 L2 2 L20 2" stroke="rgba(0,210,255,0.9)" stroke-width="2" />
+                <path d="M2 2 L8 2" stroke="rgba(0,210,255,0.4)" stroke-width="1" />
+              </svg>
+            </div>
+            <div class="corner tr">
+              <svg viewBox="0 0 28 28" fill="none">
+                <path d="M2 20 L2 2 L20 2" stroke="rgba(0,210,255,0.9)" stroke-width="2" />
+              </svg>
+            </div>
+            <div class="corner bl">
+              <svg viewBox="0 0 28 28" fill="none">
+                <path d="M2 20 L2 2 L20 2" stroke="rgba(0,210,255,0.9)" stroke-width="2" />
+              </svg>
+            </div>
+            <div class="corner br">
+              <svg viewBox="0 0 28 28" fill="none">
+                <path d="M2 20 L2 2 L20 2" stroke="rgba(0,210,255,0.9)" stroke-width="2" />
+              </svg>
+            </div>
+
+            <div class="video-wrap">
+              <video autoplay muted loop playsinline>
+                <source src="img/face.mp4" type="video/mp4" />
+              </video>
+              <div class="scanlines"></div>
+              <div class="scan-beam"></div>
+              <div class="chromatic"></div>
+              <div class="inner-glow"></div>
+            </div>
+            <div class="border-glow"></div>
+          </div>
+
+          <div class="projector-beam"></div>
+          <div class="projector-base"></div>
+          <div class="holo-name">C L E M E N T I N E</div>
+        </div>
+
+        <!-- ═══ COLUNA DIREITA (Notícias + Tarefas) ═══ -->
+        <div class="holo-col">
+          <div class="glass-panel">
+            <div class="gp-header">
+              <span class="gp-icon">📰</span>
+              <span class="gp-title">Notícias</span>
+              <span class="gp-meta" id="news-meta"></span>
+            </div>
+            <div class="gp-body" id="news-body"><div class="gp-empty">A carregar…</div></div>
+          </div>
+
+          <div class="glass-panel">
+            <div class="gp-header">
+              <span class="gp-icon">✅</span>
+              <span class="gp-title">Tarefas</span>
+              <span class="gp-meta" id="tasks-meta"></span>
+            </div>
+            <div class="gp-body" id="tasks-body"><div class="gp-empty">A carregar…</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ CONTROLO FINANCEIRO — janela recolhível ═══ -->
+      <div class="fin-wrap">
+        <div class="glass-panel fin-panel collapsed" id="finPanel">
+          <div class="gp-header fin-toggle" onclick="toggleFin()">
+            <span class="gp-icon">💶</span>
+            <span class="gp-title">Controlo Financeiro</span>
+            <span class="fin-chevron" id="finChevron">▼</span>
+          </div>
+          <div class="fin-body">
+            <iframe
+              class="fin-frame"
+              id="finFrame"
+              data-src="../office/controle-financeiro.html"
+              title="Controlo Financeiro"
+              loading="lazy"
+            ></iframe>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // ── Partículas flutuantes ──
+      const canvas = document.getElementById("particles");
+      const ctx = canvas.getContext("2d");
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      window.addEventListener("resize", () => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      });
+
+      const particles = Array.from({ length: 60 }, () => ({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        r: Math.random() * 1.5 + 0.3,
+        vx: (Math.random() - 0.5) * 0.3,
+        vy: -Math.random() * 0.5 - 0.1,
+        alpha: Math.random() * 0.5 + 0.1,
+      }));
+
+      function drawParticles() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particles.forEach((p) => {
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(0, 200, 255, ${p.alpha})`;
+          ctx.fill();
+          p.x += p.vx;
+          p.y += p.vy;
+          if (p.y < -5) {
+            p.y = canvas.height + 5;
+            p.x = Math.random() * canvas.width;
+          }
+          if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+        });
+        requestAnimationFrame(drawParticles);
+      }
+      drawParticles();
+
+      // ── Matrix rain ──
+      const mCanvas = document.getElementById("matrix");
+      if (mCanvas) {
+        const mCtx = mCanvas.getContext("2d");
+        mCanvas.width = 180;
+        mCanvas.height = 640;
+        const chars = "アカサタナハマヤラワ0123456789ABCDEFGHKLMNPRSTXZ<>*+#".split("");
+        const fontSize = 14;
+        const cols = Math.floor(mCanvas.width / fontSize);
+        const rows = mCanvas.height / fontSize;
+        const drops = Array.from({ length: cols }, () => Math.random() * rows);
+        function drawMatrix() {
+          mCtx.fillStyle = "rgba(0, 8, 20, 0.10)";
+          mCtx.fillRect(0, 0, mCanvas.width, mCanvas.height);
+          mCtx.font = fontSize + "px 'Courier New', monospace";
+          drops.forEach((y, i) => {
+            const x = i * fontSize + 3;
+            // cabeça brilhante
+            mCtx.fillStyle = "rgba(200, 250, 255, 0.95)";
+            mCtx.fillText(chars[Math.floor(Math.random() * chars.length)], x, y * fontSize);
+            // rasto ciano
+            mCtx.fillStyle = "rgba(0, 210, 255, 0.6)";
+            mCtx.fillText(chars[Math.floor(Math.random() * chars.length)], x, (y - 1) * fontSize);
+            if (y * fontSize > mCanvas.height && Math.random() > 0.965) drops[i] = 0;
+            drops[i] += 0.35;
+          });
+          requestAnimationFrame(drawMatrix);
+        }
+        drawMatrix();
+      }
+
+      // ── Dados laterais técnicos ──
+      const dataLines = [
+        "ID: CL-7749",
+        "STAT: ACTIVE",
+        "FREQ: 2.4GHz",
+        "VER: 3.1.4",
+        "MEM: 98%",
+        "SYS: OK",
+        "LAT: 38.71N",
+        "LON: 9.14W",
+        "ALT: 12m",
+        "NET: SECURE",
+        "ENC: AES-256",
+        "AUTH: OK",
+        "TEMP: 36.6°",
+        "HR: 72bpm",
+        "MODE: IDLE",
+      ];
+      function genData(el, n) {
+        const pick = () => dataLines[Math.floor(Math.random() * dataLines.length)];
+        el.innerHTML = Array.from({ length: n }, pick).join("<br>");
+      }
+      const _L = document.getElementById("dataLeft");
+      const _R = document.getElementById("dataRight");
+      if (_L && _R) {
+        genData(_L, 8);
+        genData(_R, 8);
+        setInterval(() => {
+          const idx = Math.floor(Math.random() * 8);
+          const lines = _L.innerHTML.split("<br>");
+          lines[idx] = dataLines[Math.floor(Math.random() * dataLines.length)];
+          _L.innerHTML = lines.join("<br>");
+        }, 800);
+        setInterval(() => {
+          const idx = Math.floor(Math.random() * 8);
+          const lines = _R.innerHTML.split("<br>");
+          lines[idx] = dataLines[Math.floor(Math.random() * dataLines.length)];
+          _R.innerHTML = lines.join("<br>");
+        }, 600);
+      }
+
+      // ── JSONBin (mesmos bins do Home) ──
+      const JB_KEY = "$2a$10$NktkUyYCYMW7zQ3kcKosh.ZPUZnFK0aF/1ZQJYWheaGRzGbtZJSvi";
+      const JB_HDR = { "Content-Type": "application/json", "X-Master-Key": JB_KEY };
+      const JB_TAREFAS = "https://api.jsonbin.io/v3/b/6a32f2e3f5f4af5e2903f81c";
+      const JB_NEWS = "https://api.jsonbin.io/v3/b/6a34ed84da38895dfedbf6b4";
+      const dataStr = new Date().toLocaleDateString("pt-PT", { day: "2-digit", month: "long", year: "numeric" });
+
+      // ── Notícias ──
+      async function carregarNoticias() {
+        const body = document.getElementById("news-body");
+        document.getElementById("news-meta").textContent = dataStr;
+        try {
+          const r = await fetch(JB_NEWS + "/latest", { headers: JB_HDR });
+          const n = (await r.json()).record;
+          if (!n || !n.itens || !n.itens.length) {
+            body.innerHTML = '<div class="gp-empty">Sem notícias para hoje</div>';
+            return;
+          }
+          body.innerHTML = n.itens
+            .map(
+              (it) => `
+      <div class="gp-news-item">
+        <div class="n-tit">${it.url ? `<a href="${it.url}" target="_blank" rel="noopener">${it.titulo}</a>` : it.titulo}</div>
+        <div class="n-txt">${it.texto || ""}</div>
+        ${it.fonte ? `<div class="n-src">— ${it.fonte}</div>` : ""}
+      </div>`,
+            )
+            .join("");
+        } catch {
+          body.innerHTML = '<div class="gp-empty">Erro ao carregar</div>';
+        }
+      }
+
+      // ── Tarefas ──
+      async function carregarTarefas() {
+        const body = document.getElementById("tasks-body");
+        try {
+          const r = await fetch(JB_TAREFAS + "/latest", { headers: JB_HDR });
+          const tarefas = (await r.json()).record.tarefas || [];
+          document.getElementById("tasks-meta").textContent =
+            `${tarefas.length} pendente${tarefas.length !== 1 ? "s" : ""}`;
+          if (!tarefas.length) {
+            body.innerHTML = '<div class="gp-empty">Nenhuma tarefa pendente</div>';
+            return;
+          }
+          body.innerHTML = tarefas
+            .map((t) => {
+              const partes = t.split("|");
+              const texto = partes[0].trim();
+              const prio = partes[1] ? partes[1].trim() : "🟡 Média";
+              const emoji = prio.split(" ")[0] || "🟡";
+              return `<div class="gp-task"><span class="t-prio">${emoji}</span><span class="t-txt">${texto}</span></div>`;
+            })
+            .join("");
+        } catch {
+          body.innerHTML = '<div class="gp-empty">Erro ao carregar</div>';
+        }
+      }
+
+      // ── Controlo Financeiro (janela recolhível) ──
+      // O iframe só carrega quando o painel é aberto pela primeira vez.
+      function toggleFin() {
+        const panel = document.getElementById("finPanel");
+        const frame = document.getElementById("finFrame");
+        panel.classList.toggle("collapsed");
+        if (!panel.classList.contains("collapsed") && !frame.src) {
+          frame.src = frame.dataset.src;
+        }
+      }
+
+      carregarNoticias();
+      carregarTarefas();
+
+      // ── CLEMENTINE AUDIO SCHEDULER ────────────────────────────────
+      // Fala no horário certo: bom dia, hora do almoço, café, boa noite, etc.
+      // (mesma lógica do Home — os mp3 ficam em html/home/clementine/mp3/)
+      (function () {
+        const MP3 = "../home/clementine/mp3/";
+
+        function getSlot(now) {
+          const day = now.getDay(); // 0=Dom 1-5=Seg-Sex 6=Sab
+          const h = now.getHours();
+          if (day === 6) return null; // Sábado — silêncio
+          if (day === 0) return h >= 14 && h < 22 ? MP3 + "luna.bom.dia.mp3" : null;
+          // Seg–Sex
+          if (h >= 8 && h < 11) return MP3 + "luna.bom.dia.mp3";
+          else if (h >= 11 && h < 12) return MP3 + "luna.whatasapp.mp3";
+          else if (h >= 12 && h < 14) return MP3 + "luana.hora.almoco.mp3";
+          else if (h >= 14 && h < 22) return MP3 + "luna.whatasapp.mp3";
+          else return MP3 + "luna.boa.noite.mp3";
+        }
+
+        function slotKey(now) {
+          const h = now.getHours();
+          const band = h < 8 ? 0 : h < 11 ? 8 : h < 12 ? 11 : h < 14 ? 12 : h < 22 ? 14 : 22;
+          return `${now.getDay()}:${band}`;
+        }
+
+        const POINT_TRIGGERS = [
+          { key: "cafe", days: [0, 1, 2, 3, 4, 5, 6], h: 16, audio: MP3 + "luna.cafe.mp3" },
+          { key: "mkt-15", days: [3, 5], h: 15, audio: MP3 + "luna.marketing.mp3" },
+          { key: "mkt-18", days: [3, 5], h: 18, audio: MP3 + "luna.marketing.mp3" },
+        ];
+        const firedAt = new Map();
+
+        // Realça o holograma enquanto a Clementine fala
+        const _border = document.querySelector(".border-glow");
+        const _name = document.querySelector(".holo-name");
+        function setSpeaking(on) {
+          if (_border)
+            _border.style.boxShadow = on
+              ? "0 0 22px rgba(0,220,255,1), 0 0 55px rgba(0,210,255,0.55), inset 0 0 18px rgba(0,220,255,0.25)"
+              : "";
+          if (_name) _name.style.color = on ? "rgba(120,235,255,1)" : "";
+        }
+
+        function playFile(src) {
+          if (!src) return;
+          const a = new Audio(src);
+          a.volume = 0.85;
+          setSpeaking(true);
+          a.addEventListener("ended", () => setSpeaking(false));
+          a.addEventListener("error", () => setSpeaking(false));
+          a.addEventListener("pause", () => setSpeaking(false));
+          a.play().catch(() => setSpeaking(false));
+        }
+
+        function checkPointTriggers(now) {
+          const day = now.getDay();
+          const h = now.getHours();
+          const m = now.getMinutes();
+          const dateStr = now.toDateString();
+          POINT_TRIGGERS.forEach((pt) => {
+            if (!pt.days.includes(day) || h !== pt.h || m !== 0) return;
+            const fk = `${pt.key}-${dateStr}`;
+            if (firedAt.has(fk)) return;
+            firedAt.set(fk, true);
+            playFile(pt.audio);
+          });
+        }
+
+        // Toca saudação inicial ao abrir a página
+        playFile(getSlot(new Date()));
+
+        // Verifica mudança de slot e triggers a cada 30 s
+        let lastSlot = slotKey(new Date());
+        setInterval(() => {
+          const now = new Date();
+          checkPointTriggers(now);
+          const key = slotKey(now);
+          if (key !== lastSlot) {
+            lastSlot = key;
+            playFile(getSlot(now));
+          }
+        }, 30_000);
+      })();
+    </script>
+  </body>
+</html>

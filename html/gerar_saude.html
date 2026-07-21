@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gerar saude.json — Painel Interno</title>
+<style>
+  :root {
+    --navy: #0f2942; --navy-light: #1b3f61; --gold: #b08d47;
+    --bg: #f4f5f7; --card: #ffffff; --text: #22292f; --muted: #6b7280;
+    --green: #1e7e34; --red: #c0392b; --border: #e3e6ea;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.5; }
+  header { background: var(--navy); color: #fff; padding: 24px 20px; text-align: center; }
+  header h1 { margin: 0 0 4px; font-size: 20px; font-weight: 600; }
+  header p { margin: 0; color: #c9d3dc; font-size: 13px; }
+  .aviso-interno { background: #fff4e0; color: #7a5200; text-align: center; font-size: 12.5px; padding: 8px 16px; }
+  main { max-width: 680px; margin: 24px auto 60px; padding: 0 16px; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 24px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+  .drop-zone { border: 2px dashed var(--border); border-radius: 10px; padding: 34px 16px; text-align: center; color: var(--muted); cursor: pointer; transition: border-color 0.15s, background 0.15s; }
+  .drop-zone.arrastando { border-color: var(--gold); background: #fbf7ee; }
+  .drop-zone strong { color: var(--navy); }
+  .drop-zone input { display: none; }
+  .lista-arquivos { margin-top: 14px; display: none; }
+  .arq { display: flex; align-items: center; gap: 8px; font-size: 13px; padding: 6px 10px; background: #eef2f7; border-radius: 6px; margin-top: 6px; color: var(--navy); }
+  .arq .tipo { margin-left: auto; font-size: 11.5px; font-weight: 600; padding: 2px 8px; border-radius: 20px; }
+  .arq .tipo.moc { background: #dbeafe; color: #1e40af; }
+  .arq .tipo.dieta { background: #dcfce7; color: #166534; }
+  .arq .tipo.ign { background: #fee2e2; color: #991b1b; }
+  button { width: 100%; background: var(--navy); color: #fff; border: none; padding: 13px; border-radius: 6px; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 20px; }
+  button:hover { background: var(--navy-light); }
+  button:disabled { opacity: 0.5; cursor: default; }
+  .msg { margin-top: 14px; padding: 12px 14px; border-radius: 6px; font-size: 13.5px; display: none; }
+  .msg.erro { background: #fdecea; color: var(--red); display: block; }
+  .msg.aviso { background: #fff4e0; color: #7a5200; display: block; }
+  #resultado { display: none; }
+  #resultado h2 { margin: 0 0 12px; font-size: 16px; color: var(--navy); }
+  .linha { display: flex; justify-content: space-between; gap: 12px; padding: 7px 0; border-bottom: 1px solid var(--border); font-size: 13.5px; }
+  .linha:last-child { border-bottom: none; }
+  .linha .rotulo { color: var(--muted); }
+  .linha .valor { font-weight: 600; text-align: right; word-break: break-word; }
+  .btn-baixar { display: block; text-align: center; background: var(--green); color: #fff; text-decoration: none; padding: 13px; border-radius: 6px; font-weight: 600; margin-top: 18px; }
+  .btn-baixar:hover { opacity: 0.9; }
+  .instrucoes { margin-top: 16px; font-size: 12.5px; color: var(--muted); background: #f7f8fa; border-radius: 8px; padding: 12px 14px; line-height: 1.5; }
+  .instrucoes code { background: #eef2f7; padding: 1px 5px; border-radius: 4px; color: var(--navy); }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Gerar saude.json</h1>
+  <p>Painel interno — converte as notas da pasta 07. Saúde no ficheiro que o saude.html lê</p>
+</header>
+<div class="aviso-interno">⚠️ Ferramenta de uso interno. Arraste aqui os <code>.md</code> exportados do Obsidian.</div>
+
+<main>
+  <div class="card">
+    <div class="drop-zone" id="dropZone">
+      <div>📄 Arraste os ficheiros <strong>MOC - Saúde ….md</strong> e <strong>Dieta ….md</strong> aqui,<br>ou clique para escolher (pode selecionar vários)</div>
+      <input type="file" id="fileInput" accept=".md,text/markdown,text/plain" multiple>
+    </div>
+    <div class="lista-arquivos" id="listaArquivos"></div>
+
+    <button id="btnGerar" disabled>Gerar saude.json</button>
+    <div class="msg" id="msg"></div>
+  </div>
+
+  <div class="card" id="resultado">
+    <h2>✅ saude.json gerado</h2>
+    <div class="linha"><span class="rotulo">Pessoas incluídas</span><span class="valor" id="r-pessoas"></span></div>
+    <div class="linha"><span class="rotulo">Dieta</span><span class="valor" id="r-dieta"></span></div>
+    <div class="linha"><span class="rotulo">Gerado em</span><span class="valor" id="r-data"></span></div>
+
+    <a class="btn-baixar" id="btnBaixar" download="saude.json">⬇️ Baixar saude.json</a>
+
+    <div class="instrucoes">
+      Guarde o <code>saude.json</code> na mesma pasta do <code>saude.html</code>
+      (<code>pessoal/html/</code>) — substitua o que já lá estiver — e faça
+      <code>commit</code> + <code>push</code>. O <code>saude.html</code> passa a mostrar os dados novos.
+      <br><br>
+      Dica: no Chrome, ative "Perguntar onde salvar cada arquivo" para gravar direto na pasta certa.
+    </div>
+  </div>
+</main>
+
+<script>
+// ====== Metadados por pessoa (espelha gerar_saude_json.py) ======
+const META = {
+  marcio:  { emoji: "👨", ordem: 0, titular: true },
+  helen:   { emoji: "👩", ordem: 1, titular: false },
+  victor:  { emoji: "🧒", ordem: 2, titular: false },
+  dominic: { emoji: "🧒", ordem: 3, titular: false },
+  desiree: { emoji: "👶", ordem: 4, titular: false },
+};
+
+let arquivos = []; // { nome, texto, tipo }
+
+const dropZone = document.getElementById("dropZone");
+const fileInput = document.getElementById("fileInput");
+const btnGerar = document.getElementById("btnGerar");
+
+dropZone.addEventListener("click", () => fileInput.click());
+dropZone.addEventListener("dragover", e => { e.preventDefault(); dropZone.classList.add("arrastando"); });
+dropZone.addEventListener("dragleave", () => dropZone.classList.remove("arrastando"));
+dropZone.addEventListener("drop", e => {
+  e.preventDefault(); dropZone.classList.remove("arrastando");
+  if (e.dataTransfer.files.length) carregarArquivos(e.dataTransfer.files);
+});
+fileInput.addEventListener("change", () => { if (fileInput.files.length) carregarArquivos(fileInput.files); });
+
+function tipoDoNome(nome) {
+  const n = nome.normalize("NFC").toLowerCase();
+  if (n.startsWith("moc - sa")) return "moc";
+  if (n.startsWith("dieta")) return "dieta";
+  return "ign";
+}
+
+function carregarArquivos(fileList) {
+  const files = Array.from(fileList).filter(f => /\.(md|txt)$/i.test(f.name));
+  let pendentes = files.length;
+  if (!pendentes) return;
+  files.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      // evita duplicados pelo nome
+      arquivos = arquivos.filter(a => a.nome !== file.name);
+      arquivos.push({ nome: file.name, texto: reader.result, tipo: tipoDoNome(file.name) });
+      if (--pendentes === 0) desenharLista();
+    };
+    reader.readAsText(file, "UTF-8");
+  });
+}
+
+function desenharLista() {
+  const cont = document.getElementById("listaArquivos");
+  if (!arquivos.length) { cont.style.display = "none"; return; }
+  const rot = { moc: "MOC", dieta: "Dieta", ign: "ignorado" };
+  cont.innerHTML = arquivos.map(a =>
+    '<div class="arq">📎 ' + a.nome + '<span class="tipo ' + a.tipo + '">' + rot[a.tipo] + "</span></div>"
+  ).join("");
+  cont.style.display = "block";
+  btnGerar.disabled = !arquivos.some(a => a.tipo === "moc");
+}
+
+// ====== Parser (espelha gerar_saude_json.py) ======
+function semAcentos(s) { return s.normalize("NFD").replace(/[̀-ͯ]/g, ""); }
+function slug(texto) {
+  let t = semAcentos(texto || "").replace(/[^a-zA-Z0-9]+/g, " ").trim().toLowerCase();
+  return t ? t.split(" ")[0] : "";
+}
+function semFrontMatter(texto) {
+  if (texto.replace(/^\s+/, "").startsWith("---")) {
+    const m = texto.match(/^\s*---\s*\n[\s\S]*?\n---\s*\n/);
+    if (m) return texto.slice(m[0].length);
+  }
+  return texto;
+}
+function limparCorpo(texto) {
+  let t = semFrontMatter(texto).replace(/^\n+/, "");
+  const linhas = t.split("\n");
+  let i = 0;
+  if (i < linhas.length && linhas[i].startsWith("# ")) i++;
+  while (i < linhas.length) {
+    const s = linhas[i].trim();
+    if (s === "" || s.startsWith(">") || /^-{3,}$/.test(s)) { i++; continue; }
+    break;
+  }
+  let corpo = linhas.slice(i).join("\n");
+  corpo = corpo.replace(/\[\[([^\]]+?)\]\]/g, (m, p1) => p1.split("|")[0]);
+  return corpo.trim();
+}
+function extrairNome(texto, fallback) {
+  let m = texto.match(/\|\s*\*\*Nome\*\*\s*\|\s*([^|]+?)\s*\|/);
+  if (m) return m[1].trim();
+  m = texto.match(/^#\s+.*?Saúde\s+(.+)$/m);
+  if (m) return m[1].trim();
+  return fallback;
+}
+function extrairIdade(texto) {
+  const m = texto.match(/Data de Nascimento\*\*\s*\|\s*[^|(]*\(([^)]+)\)/);
+  return m ? m[1].trim() : "";
+}
+function extrairTituloDieta(texto) {
+  const m = semFrontMatter(texto).match(/^#\s+(.+)$/m);
+  return m ? m[1].trim().replace(/^🥗\s*/, "").trim() : "Dieta";
+}
+
+document.getElementById("btnGerar").addEventListener("click", () => {
+  limparMsg();
+  document.getElementById("resultado").style.display = "none";
+
+  const mocs = arquivos.filter(a => a.tipo === "moc");
+  const dietas = arquivos.filter(a => a.tipo === "dieta");
+  if (!mocs.length) { mostrarMsg("Nenhum ficheiro 'MOC - Saúde ….md' foi carregado.", "erro"); return; }
+
+  const pessoas = mocs.map(a => {
+    const nome = extrairNome(a.texto, a.nome.replace(/^MOC - Saúde /i, "").replace(/\.md$/i, ""));
+    const pid = slug(nome) || slug(a.nome);
+    const meta = META[pid] || { emoji: "👤", ordem: 99, titular: false };
+    return {
+      id: pid, nome, primeiro_nome: nome.split(" ")[0],
+      emoji: meta.emoji, idade: extrairIdade(a.texto),
+      titular: meta.titular, ordem: meta.ordem, markdown: limparCorpo(a.texto),
+    };
+  }).sort((x, y) => x.ordem - y.ordem || x.nome.localeCompare(y.nome));
+
+  let dieta = null;
+  if (dietas.length) {
+    const d = dietas.sort((x, y) => x.nome.localeCompare(y.nome))[dietas.length - 1];
+    dieta = { titulo: extrairTituloDieta(d.texto), ficheiro: d.nome, markdown: limparCorpo(d.texto) };
+  }
+
+  const dados = { gerado_em: new Date().toISOString().slice(0, 10), pessoas, dieta };
+  const json = JSON.stringify(dados, null, 2);
+  const blob = new Blob([json], { type: "application/json" });
+
+  document.getElementById("r-pessoas").textContent = pessoas.map(p => p.primeiro_nome).join(", ");
+  document.getElementById("r-dieta").textContent = dieta ? dieta.ficheiro : "— (nenhuma)";
+  document.getElementById("r-data").textContent = dados.gerado_em;
+  const btnBaixar = document.getElementById("btnBaixar");
+  btnBaixar.href = URL.createObjectURL(blob);
+  document.getElementById("resultado").style.display = "block";
+
+  const ign = arquivos.filter(a => a.tipo === "ign");
+  if (ign.length) mostrarMsg("Ignorados (nome não reconhecido): " + ign.map(a => a.nome).join(", "), "aviso");
+});
+
+function limparMsg() { const el = document.getElementById("msg"); el.textContent = ""; el.className = "msg"; }
+function mostrarMsg(t, tipo) { const el = document.getElementById("msg"); el.textContent = t; el.className = "msg " + tipo; }
+</script>
+</body>
+</html>
