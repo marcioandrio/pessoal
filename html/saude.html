@@ -1,414 +1,923 @@
 <!doctype html>
 <html lang="pt">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Saúde — Família Andrio</title>
-<style>
-  :root {
-    --bg: #0a0e14; --bg2: #0f1520; --panel: #131b28; --panel2: #182233;
-    --border: #223047; --text: #dce6f2; --muted: #8595a8;
-    --accent: #2dd4bf; --accent2: #38bdf8; --warn: #f59e0b; --danger: #f87171; --ok: #34d399;
-  }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  html { scroll-behavior: smooth; }
-  body {
-    background: radial-gradient(1200px 800px at 20% -10%, #12202e 0%, var(--bg) 55%);
-    color: var(--text);
-    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    line-height: 1.55; min-height: 100vh; padding-bottom: 60px;
-  }
-  header {
-    position: sticky; top: 0; z-index: 50; backdrop-filter: blur(12px);
-    background: rgba(10, 14, 20, 0.82); border-bottom: 1px solid var(--border);
-  }
-  .head-inner { max-width: 1080px; margin: 0 auto; padding: 16px 22px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
-  .brand { display: flex; align-items: center; gap: 12px; margin-right: auto; }
-  .brand .logo {
-    width: 40px; height: 40px; border-radius: 11px;
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
-    display: grid; place-items: center; font-size: 22px; box-shadow: 0 0 22px rgba(45, 212, 191, 0.35);
-  }
-  .brand h1 { font-size: 18px; font-weight: 700; letter-spacing: .2px; }
-  .brand p { font-size: 12px; color: var(--muted); }
-  .brand .stamp { font-size: 11px; color: var(--muted); }
-  .actions { display: flex; gap: 10px; flex-wrap: wrap; }
-  button.btn {
-    font: inherit; font-size: 13px; font-weight: 600; color: var(--text); background: var(--panel2);
-    border: 1px solid var(--border); border-radius: 10px; padding: 9px 14px; cursor: pointer;
-    transition: all .15s; display: inline-flex; align-items: center; gap: 7px;
-  }
-  button.btn:hover { border-color: var(--accent); color: #fff; transform: translateY(-1px); }
-  button.btn.primary { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #04121a; border-color: transparent; }
-  button.btn.primary:hover { box-shadow: 0 6px 18px rgba(45, 212, 191, .3); }
-
-  nav.tabs { max-width: 1080px; margin: 0 auto; padding: 12px 22px 0; display: flex; gap: 8px; flex-wrap: wrap; }
-  .tab {
-    font: inherit; font-size: 13.5px; font-weight: 600; color: var(--muted); background: transparent;
-    border: 1px solid transparent; border-radius: 10px 10px 0 0; padding: 9px 15px; cursor: pointer;
-    position: relative; display: inline-flex; align-items: center; gap: 8px;
-  }
-  .tab .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
-  .tab:hover { color: var(--text); }
-  .tab.active { color: #fff; background: var(--panel); border-color: var(--border); border-bottom-color: var(--panel); }
-  .tab.active .dot { background: var(--accent); box-shadow: 0 0 8px var(--accent); }
-  .tab .age { font-size: 11px; color: var(--muted); font-weight: 500; }
-
-  main { max-width: 1080px; margin: 0 auto; padding: 22px; }
-  .panel { display: none; animation: fade .25s ease; }
-  .panel.active { display: block; }
-  @keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-
-  .person-head {
-    display: flex; align-items: center; gap: 16px; margin-bottom: 18px; padding: 18px 20px;
-    border: 1px solid var(--border); border-radius: 16px;
-    background: linear-gradient(135deg, var(--panel), var(--bg2));
-  }
-  .avatar {
-    width: 54px; height: 54px; border-radius: 14px; flex-shrink: 0; display: grid; place-items: center;
-    font-size: 26px; font-weight: 700; background: var(--panel2); border: 1px solid var(--border);
-  }
-  .person-head h2 { font-size: 20px; }
-  .person-head .sub { color: var(--muted); font-size: 13px; }
-
-  .content h2.sec {
-    font-size: 15px; text-transform: uppercase; letter-spacing: 1px; color: var(--accent);
-    margin: 30px 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border);
-    display: flex; align-items: center; gap: 8px;
-  }
-  .content h3 { font-size: 15px; margin: 20px 0 8px; color: #eaf2fb; }
-  .content h4 { font-size: 13.5px; margin: 14px 0 6px; color: var(--muted); }
-  .content p { margin: 8px 0; color: var(--text); }
-  .content ul { list-style: none; margin: 8px 0; }
-  .content li { position: relative; padding-left: 22px; margin: 5px 0; }
-  .content li::before { content: "›"; position: absolute; left: 6px; color: var(--accent); font-weight: 700; }
-  .content li.task { padding-left: 30px; }
-  .content li.task::before { content: ""; }
-  .content li.task .box { position: absolute; left: 4px; top: 3px; width: 16px; height: 16px; border: 1.5px solid var(--muted); border-radius: 4px; }
-  .content li.task.done .box { background: var(--ok); border-color: var(--ok); }
-  .content li.task.done .box::after { content: "✓"; position: absolute; inset: -2px 0 0 2px; font-size: 12px; color: #04121a; font-weight: 800; }
-  .content blockquote {
-    border-left: 3px solid var(--accent2); background: rgba(56, 189, 248, .06);
-    padding: 10px 14px; margin: 12px 0; border-radius: 0 8px 8px 0; color: #bcd3e8; font-size: 13.5px;
-  }
-  .content blockquote.warn { border-left-color: var(--warn); background: rgba(245, 158, 11, .07); }
-  .content strong { color: #fff; font-weight: 650; }
-  .content hr { border: none; border-top: 1px solid var(--border); margin: 22px 0; opacity: .5; }
-  .content a { color: var(--accent2); text-decoration: none; }
-  .content .tbl-wrap { overflow-x: auto; margin: 12px 0; border: 1px solid var(--border); border-radius: 12px; }
-  .content table { border-collapse: collapse; width: 100%; font-size: 13px; }
-  .content th { background: var(--panel2); text-align: left; padding: 10px 13px; color: var(--accent); font-weight: 600; white-space: nowrap; border-bottom: 1px solid var(--border); }
-  .content td { padding: 9px 13px; border-bottom: 1px solid rgba(34, 48, 71, .5); vertical-align: top; }
-  .content tr:last-child td { border-bottom: none; }
-  .content tr:hover td { background: rgba(45, 212, 191, .04); }
-  .content pre.timeline {
-    background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px;
-    margin: 12px 0; overflow-x: auto; font-family: "SF Mono", "Courier New", monospace;
-    font-size: 12.5px; color: #a9c3dc; line-height: 1.7;
-  }
-  .diet-banner {
-    margin-top: 26px; padding: 16px 18px; border-radius: 14px; border: 1px dashed var(--accent);
-    background: rgba(45, 212, 191, .06); display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
-  }
-  .diet-banner .t { margin-right: auto; }
-  .diet-banner .t b { color: #fff; font-size: 15px; }
-  .diet-banner .t span { display: block; color: var(--muted); font-size: 12.5px; }
-  footer.note { max-width: 1080px; margin: 24px auto 0; padding: 0 22px; color: var(--muted); font-size: 12px; }
-  footer.note code { background: var(--panel2); padding: 1px 5px; border-radius: 4px; }
-  .loading { max-width: 1080px; margin: 60px auto; padding: 0 22px; color: var(--muted); text-align: center; }
-
-  @media print {
-    @page { margin: 14mm 12mm; }
-    body { background: #fff !important; color: #111 !important; padding: 0; }
-    header, nav.tabs, .actions, .diet-banner, footer.note, .no-print { display: none !important; }
-    main { max-width: none; padding: 0; }
-    .panel { display: none !important; }
-    body.print-full .panel.active { display: block !important; }
-    body.print-diet .panel { display: none !important; }
-    body.print-diet #diet-print { display: block !important; }
-    .print-header { display: block !important; text-align: center; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 2px solid #111; }
-    .print-header h1 { font-size: 20px; color: #111; }
-    .print-header p { font-size: 11px; color: #555; }
-    .person-head { background: none !important; border: 1px solid #ccc; }
-    .person-head h2, .person-head .sub, .avatar { color: #111 !important; }
-    .content h2.sec { color: #0d9488 !important; border-color: #ccc; }
-    .content h3, .content h4, .content p, .content li, .content strong { color: #111 !important; }
-    .content blockquote { color: #333 !important; background: #f4f8f7 !important; }
-    .content .tbl-wrap { border-color: #ccc; }
-    .content th { background: #eef3f2 !important; color: #0d9488 !important; -webkit-print-color-adjust: exact; }
-    .content td { border-color: #ddd; }
-    .content pre.timeline { background: #f6f8fa !important; color: #333 !important; border-color: #ccc; }
-    .content li.task .box { border-color: #888; }
-    .content li.task.done .box { background: #0d9488 !important; -webkit-print-color-adjust: exact; }
-    .content table, .content tr, .person-head { page-break-inside: avoid; }
-    a { color: #111 !important; }
-  }
-  .print-header { display: none; }
-  #diet-print { display: none; }
-</style>
-</head>
-<body>
-
-<header>
-  <div class="head-inner">
-    <div class="brand">
-      <div class="logo">🏥</div>
-      <div>
-        <h1>Saúde — Família Andrio</h1>
-        <p>Histórico consolidado · pasta <em>07. Saúde</em> <span class="stamp" id="stamp"></span></p>
-      </div>
-    </div>
-    <div class="actions">
-      <button class="btn" onclick="printFull()">🖨️ PDF do histórico</button>
-      <button class="btn primary" onclick="printDiet()">🥗 PDF da Dieta</button>
-    </div>
-  </div>
-  <nav class="tabs" id="tabs"></nav>
-</header>
-
-<div class="print-header">
-  <h1 id="print-title">Histórico de Saúde</h1>
-  <p id="print-sub"></p>
-</div>
-
-<main id="main"><div class="loading">A carregar dados de saúde…</div></main>
-
-<div id="diet-print"></div>
-
-<footer class="note">
-  Dados carregados de <code>saude.json</code> (gerado a partir das notas da pasta <code>07. Saúde</code>).
-  Para atualizar: edite as notas → gere um novo <code>saude.json</code> (via <code>gerar_saude.html</code> ou
-  <code>gerar_saude_json.py</code>) → guarde-o nesta mesma pasta e faça commit.
-</footer>
-
-<!-- Fallback embutido: usado quando o saude.json não pode ser carregado (ex.: abrir por file://). -->
-<script type="application/json" id="fallback-data">{
-  "gerado_em": "2026-07-21",
-  "pessoas": [
-    {
-      "id": "marcio",
-      "nome": "Marcio Andrio Xavier Da Silva",
-      "primeiro_nome": "Marcio",
-      "emoji": "👨",
-      "idade": "",
-      "titular": true,
-      "ordem": 0,
-      "markdown": "## 1. Identificação e Cartões de Saúde\n\n| Campo | Valor |\n|---|---|\n| **Nome** | Marcio Andrio Xavier Da Silva |\n| **Data de Nascimento** | 27-02-1981 |\n| **NIF** | 316 618 616 |\n| **NISS** | 12171150447 |\n| **Passaporte** | GF841231 |\n| **Título de Residência** | 2V66862F1 (val. 16-04-2027) |\n| **Nº Utente SNS** | 255073919 |\n| **Centro de Saúde** | UCSP Almada / ACES Almada-Seixal |\n| **Nº Inscrição CS** | 3150307-2106501 (inscrito 29-07-2025) |\n| **CESD (Cartão Europeu)** | 80620011070007184811 (val. 16-04-2027) |\n| **Isenção taxa moderadora** | Sem isenção |\n| **Morada** | Av. Dom Afonso Henriques, 14, 2º Dto, 2800-009 Almada |\n\n> ⚠️ Nota: Utente de fev/2025 ainda registado em Faro/Fernão Ferro. Transferência para Almada confirmada em abr/2026.\n\n---\n\n## 2. Oftalmologia\n\n### 📋 Graus Atuais (fev-mar 2025 — mais recentes)\n\n| | Olho Direito (OD) | Olho Esquerdo (OE) |\n|---|---|---|\n| **Longe — Esf** | +0,50 | +0,50 |\n| **Longe — Cil** | -0,50 | -0,25 |\n| **Longe — Eixo** | 105° | 90° |\n| **Perto — Esf** | +2,25 | +2,25 |\n| **Perto — Cil** | -0,50 | -0,25 |\n| **Perto — Eixo** | 105° | 90° |\n\n*Exame por Ana Beatriz Martins, Ortoptista (Cédula C-075676125), Pharmacontinente — 17-02-2025*\n\n### 💊 Última Receita (13-03-2025)\n- **Profissional:** Dra. Lígia Piedade (Ortoptista, Cédula C-028241118, ERS nº E131013)\n- **Indicação:** Lentes monofocais para perto — distância 20/25 cm — HD Blue\n- **Lubrificante ocular:** Systane Complete 2x/dia\n\n### 🕒 Linha do Tempo\n\n| Data | Evento |\n|---|---|\n| 27-04-2024 | Receita de óculos — Eduardo Gomes, Optometrista APLO nº 1336 |\n| 08-05-2024 | Compra de óculos progressivos — Ótica Gomes Formiga, Amadora (228€) |\n| 17-02-2025 | Exame de vista — Pharmacontinente (graus confirmados) |\n| 13-03-2025 | Receita óculos de leitura — Dra. Lígia Piedade |\n\n### ⚙️ Óculos 2024 (progressivos)\n- **Ótica:** Gomes Formiga, Amadora (NIF 516750402, Tel 214947646)\n- **Modelo:** WorkSmart Room 200 (lentes progressivas)\n- OD: Diâm 70 | Esf +0,50 | Cil -0,50 | Add 1,50\n- OE: Diâm 70 | Esf +0,50 | Cil -0,50 | Add 1,50\n- **Pago:** 228,00€ (08-05-2024)\n\n---\n\n## 3. Odontologia / Dentário\n\n### 🦷 Clínicas\n\n| Clínica | Contacto | Nº Cliente |\n|---|---|---|\n| Clínica Médico Dentária da Renovação, Almada | Tel: 21 272 98 10 \\| NIF 503426040 | 3372 |\n| One World One Health / Clínica Egas Moniz, Almada | Tel: (+351) 212 720 830 | 125413 |\n\n### 🕒 Linha do Tempo\n\n| Data | Evento | Valor |\n|---|---|---|\n| 20-08-2024 | Limpeza dentária — Clínica Renovação | 70,00€ |\n| 20-02-2025 | Limpeza dentária — Clínica Renovação | 75,00€ |\n| 05-03-2026 | Detartrização + polimento + jacto bicarbonato + verniz flúor — Egas Moniz | 87,57€ |\n| **03-09-2026** | **⏳ Consulta agendada — Dra. Cat Galhanas, Egas Moniz (14h00)** | — |\n\n---\n\n## 4. Nutrição\n\n### 🥗 Plano Alimentar Ativo\n\n- **Nutricionista:** Sara Sofia\n- **Nº Cliente:** 279403\n- **Data do plano:** 18-07-2025 (3 versões progressivas até outubro 2025)\n\n#### Estrutura diária\n\n| Hora | Refeição |\n|---|---|\n| 08:00 | Pequeno-almoço (iogurte grego / pão escuro / tapioca + proteína) |\n| 09:30 | Meio da manhã (150g fruta) |\n| 11:30/12:00 | Almoço (sopa/salada + 1/4 acompanhamento + 1/4 proteína) |\n| 14:00/17:00 | Lanche / pré-treino |\n| 20:00 | Jantar (= almoço ou sopa + proteína leve) |\n\n**Princípios:** equilíbrio proteína/carboidratos, máx. 1 c.sopa azeite/refeição, lacticínios proteicos, frutas variadas.\n\n#### 🎯 Cardápio ativo (perda de peso)\n> Dieta - Perda de Peso 2026.07.21 — cardápio de 7 dias construído sobre a estrutura acima, objetivo perda de peso (défice moderado). Substituir se a Sara Sofia enviar versão mais recente.\n\n---\n\n## 5. Quiroprática / Coluna\n\n### 🦴 Solicitações e Consultas\n\n| Data     | Evento                                                                  | Estado         |\n| -------- | ----------------------------------------------------------------------- | -------------- |\n| Mar-2026 | Consulta quiroprática — Dr. A. Negri (LINC C-00090), Laranjeiro, Almada | ✅ Realizada    |\n| Mar-2026 | Solicitação RX coluna cervical (AP + Lateral, em carga)                 | ⏳ **PENDENTE** |\n| Mar-2026 | Solicitação RX coluna lombar (AP + Lateral, em carga)                   | ⏳ **PENDENTE** |\n\n> 📞 Contacto: Rua Botão do Lar, nº4, 2810-186 Laranjeiro-Almada | almadaq uiro@gmail.com\n\n---\n\n## 6. Linha do Tempo Global\n\n```\n2024\n  ABR  → Receita de óculos (Eduardo Gomes, Amadora)\n  MAI  → Compra óculos progressivos (228€)\n  AGO  → Limpeza dentária Renovação (70€)\n\n2025\n  FEV  → Exame de vista (Pharmacontinente)\n  FEV  → Limpeza dentária Renovação (75€)\n  FEV  → Registo utente (Faro — endereço antigo)\n  MAR  → Receita óculos de leitura (Dra. Lígia Piedade)\n  JUL  → Início acompanhamento nutricionista Sara Sofia\n  OUT  → Atualização plano alimentar (versão 3)\n\n2026\n  MAR  → Consulta quiroprática + Solicitação RX coluna (pendente)\n  MAR  → Limpeza dentária Egas Moniz (87,57€)\n  ABR  → Atualização cartão utente — Almada (CESD emitido, val. 2027-04-16)\n  SET  → ⏳ Consulta dentária agendada (03-set-2026, 14h, Egas Moniz)\n```\n\n---\n\n## 7. ⚠️ Pendências\n\n- [ ] **Realizar raio-X coluna cervical** (AP + Lateral, em carga) — solicitado pelo Dr. A. Negri, mar/2026\n- [ ] **Realizar raio-X coluna lombar** (AP + Lateral, em carga) — solicitado pelo Dr. A. Negri, mar/2026\n- [ ] **Consulta dentária** — 03-set-2026, 14h00, Dra. Cat Galhanas, Egas Moniz Almada\n- [ ] **Renovar Título de Residência** (val. 16-04-2027) — prever com antecedência\n- [ ] **Renovar CESD** (val. 16-04-2027) — pedir à Segurança Social\n- [ ] Confirmar se raio-X foi realizado e juntar resultado à nota\n- [ ] Próxima consulta oftalmológica (última em mar/2025 — há mais de 1 ano)\n- [ ] Atualizar plano alimentar com Sara Sofia se houver nova versão\n\n---\n\n## 8. Contactos de Saúde\n\n| Área | Profissional / Clínica | Contacto |\n|---|---|---|\n| Oftalmologia | Ótica Gomes Formiga, Amadora | 214 947 646 |\n| Oftalmologia | ERS E131013 (Dra. Lígia Piedade) | — |\n| Dentário | Clínica Renovação, Almada | 21 272 98 10 |\n| Dentário | Egas Moniz / One World One Health | (+351) 212 720 830 |\n| Nutrição | Sara Sofia | — |\n| Quiroprática | Dr. A. Negri, Laranjeiro | almadaquiro@gmail.com |\n| SNS | Centro de Saúde UCSP Almada | — |\n\n---\n\n*Nota gerada automaticamente em 2026-06-29 a partir dos documentos em pCloud.*\n*Fontes: 2024/Saúde, 2025/Saúde, 2026/Saúde, 2026/Cartão de Saúde*"
-    },
-    {
-      "id": "helen",
-      "nome": "Helen Lima Parwani",
-      "primeiro_nome": "Helen",
-      "emoji": "👩",
-      "idade": "",
-      "titular": false,
-      "ordem": 1,
-      "markdown": "## 1. Identificação\n\n| Campo | Valor |\n|---|---|\n| **Nome** | Helen Lima Parwani |\n| **NIF** | 330282700 |\n| **Morada** | Av. Dom Afonso Henriques, 14, 2º Dto, 2800-009 Almada |\n| **Hospital de referência** | ULS Almada-Seixal / Hospital Garcia de Orta |\n\n---\n\n## 2. Obstetrícia / Gravidez\n\n### 🤰 Gravidez 2025–2026 (Désirée)\n\n| Data | Evento |\n|---|---|\n| 20-02-2025 | Ecografia pélvica (sonda vaginal) — Human Clinic, Almada — 80,00€ (prescritor Dr. Rafael Leiróz) |\n| 26-08-2025 | Receita obstreta — Fosfomicina 3000mg (H. Garcia de Orta URG, Dra. Ana Rita Agostinho) — ITU na gravidez |\n| 12-02-2026 | Consulta Periparto — H. Garcia de Orta, 15h30 |\n| **21-02-2026** | **Parto** — internamento Bloco Partos, ULS Almada-Seixal (entrada urgência 08h06) |\n\n### 👶 Dados do Parto — Désirée\n- **Data/hora nascimento:** 21-02-2026 às 11h20\n- **Sexo:** Feminino\n- **Peso:** 3.820 g\n- **Gestação:** 39 semanas\n- **Episódio internamento:** 26004026\n\n---\n\n## 3. Linha do Tempo Global\n\n```\n2025\n  FEV  → Ecografia pélvica (Human Clinic, 80€)\n  AGO  → Receita obstreta — Fosfomicina (ITU gravidez)\n\n2026\n  FEV  → Consulta Periparto (12-fev, 15h30, HGO)\n  FEV  → Parto — nascimento de Désirée (21-fev, 11h20, 3820g, 39sem)\n```\n\n---\n\n## 4. ⚠️ Pendências\n\n- [ ] Obter e registar Nº SNS de utente da Helen\n- [ ] Consulta puerpério / revisão pós-parto (6 semanas após parto)\n- [ ] Acompanhamento pediatria da Désirée (ver MOC - Saúde Désirée Andrio)\n\n---\n\n## 5. Contactos de Saúde\n\n| Área | Profissional / Clínica | Contacto |\n|---|---|---|\n| Ecografia | Human Clinic, Almada | 211 336 106 / 927 438 232 |\n| Obstetrícia urgência | H. Garcia de Orta URG | 212 940 294 |\n| Consulta externa | ULS Almada-Seixal | secretariado.consexterna@ulsas.min-saude.pt |\n\n---\n\n*Nota gerada automaticamente em 2026-06-29 a partir dos documentos em pCloud.*\n*Fontes: 2025/Saúde (Obstreta), 2026/Saúde (Nascimento Désirée)*"
-    },
-    {
-      "id": "victor",
-      "nome": "Victor Andrio Parwani Da Silva",
-      "primeiro_nome": "Victor",
-      "emoji": "🧒",
-      "idade": "12 anos",
-      "titular": false,
-      "ordem": 2,
-      "markdown": "## 1. Identificação\n\n| Campo | Valor |\n|---|---|\n| **Nome** | Victor Andrio Parwani Da Silva |\n| **Data de Nascimento** | 31-07-2013 (12 anos) |\n| **Sexo** | Masculino |\n| **Nº SNS** | 255068592 |\n| **Processo HGO** | 25019734 |\n| **Morada** | Av. Dom Afonso Henriques, 14, 2º Dto, S24, 2800-009 Almada |\n| **Tel.** | 929076693 |\n| **Hospital de referência** | ULS Almada-Seixal / Hospital Garcia de Orta |\n| **Médica Pediatria** | Dra. Ana Sofia Fraga (nº 41294) |\n\n---\n\n## 2. Condições de Saúde\n\n### 🫁 Respiratório (Asma / Brônquica)\n- **Medicação:** Budesonida + Formoterol — Biformix Easyhaler 160µg/dose + 4,5µg/dose\n- **Posologia:** 1 inalação manhã e noite; até 12 inalações/dia em crise\n- **Prescrito:** 28-05-2025 — Dra. Elda Marques da Costa — H. Garcia de Orta Int\n- **Validade receita:** até 29-05-2026 (a renovar)\n\n### 🧠 Dislexia\n- **Exame:** realizado em out/2025 (documento físico/scan — sem texto digital)\n- **Acompanhamento escolar:** em curso\n\n### 👂 Otorrino\n- **Receita:** 16-09-2025 — Dra. Ana Sofia Fraga — Pediatria Geral, HGO\n- **Conteúdo:** manuscrito (digitalizar)\n\n### 🥗 Nutrição (jun 2026)\n- **Plano:** Serviço de Nutrição e Dietética, Hospital Garcia de Orta (14-06-2026)\n- **Estrutura:** pequeno-almoço, meio manhã, almoço, lanche, jantar, ceia\n- **Princípios:** redução açúcares, poupar sal, refeições regulares, 45-60 min exercício/dia\n\n---\n\n## 3. Linha do Tempo\n\n```\n2025\n  MAI  → Doença + atestado médico (27-30/mai, Dra. Filipa A. Ferreira)\n  MAI  → Receita Biformix Easyhaler (asma, Dra. Elda Marques)\n  SET  → Consulta Pediatria Geral + receita otorrino (Dra. Ana Sofia Fraga)\n  OUT  → Exame Dislexia (scan)\n\n2026\n  MAI  → Consulta Pediatria Geral reagendada para 01/05/2026, 11h30\n  JUN  → Plano alimentar (Nutrição/Dietética, HGO, 14-jun)\n  JUN  → Receita médica (Dra. Margarida Carneiro M77547, 14-jun)\n```\n\n---\n\n## 4. ⚠️ Pendências\n\n- [ ] **Renovar receita Biformix Easyhaler** (val. receita expirou mai/2026)\n- [ ] **Relatório dislexia** — digitalizar e registar diagnóstico completo\n- [ ] **Resultado consulta Otorrino** — confirmar tratamento e seguimento\n- [ ] **Plano escolar** para apoio à dislexia — ligar com escola (6º ano)\n- [ ] Próxima consulta Pediatria Geral — verificar data após mai/2026\n\n---\n\n## 5. Contactos de Saúde\n\n| Área | Profissional / Clínica | Contacto |\n|---|---|---|\n| Pediatria / Medicina Geral | Dra. Ana Sofia Fraga (41294) — HGO | 212 940 294 |\n| Respiratório | Dra. Elda Marques da Costa — HGO | 212 940 294 |\n| Nutrição | Serviço Nutrição/Dietética — HGO | 212 726 844 |\n| Consultas externas | secretariado.consexterna@ulsas.min-saude.pt | — |\n\n---\n\n*Nota gerada automaticamente em 2026-06-29 a partir dos documentos em pCloud.*\n*Fontes: 2025/Saúde (Dislexia, Otorrino, Acompanhamento), 2025/Hospital Garcia de Orta, 2026/Saúde*"
-    },
-    {
-      "id": "dominic",
-      "nome": "Dominic Andrio Parwani Da Silva",
-      "primeiro_nome": "Dominic",
-      "emoji": "🧒",
-      "idade": "6 anos",
-      "titular": false,
-      "ordem": 3,
-      "markdown": "## 1. Identificação\n\n| Campo | Valor |\n|---|---|\n| **Nome** | Dominic Andrio Parwani Da Silva |\n| **Data de Nascimento** | 16-09-2019 (6 anos) |\n| **Sexo** | Masculino |\n| **Nº Utente SNS** | 255075158 |\n| **NIF** | 330282476 |\n| **Passaporte** | GF841230 |\n| **Isenção Taxa Moderadora** | SIM — Código 201 (val. 16-09-2037) |\n| **Morada atual** | Av. Dom Afonso Henriques, 14, Almada |\n| **Hospital de referência** | ULS Almada-Seixal / Hospital Garcia de Orta |\n\n> ⚠️ Utente registado em 11-02-2025 com morada antiga (Rua do Benformoso 179, Lisboa). Verificar se foi atualizado para Almada.\n\n---\n\n## 2. Histórico de Saúde\n\n### 🤒 Virose — Fevereiro 2026\n\n- **Data:** 09-02-2026\n- **Local:** H. Garcia de Orta URG — Dra. Maria Inês Marques\n- **Medicação prescrita:**\n  - Paracetamol 40mg/ml xarope — 14ml SOS de 6/6h\n  - Ibuprofeno 40mg/ml suspensão oral — 7ml SOS de 8/8h\n  - Válida até: 12-03-2026\n\n---\n\n## 3. Linha do Tempo\n\n```\n2024\n  SET  → Inscrição como utente SNS (Nº 255075158)\n\n2026\n  FEV  → Virose — urgência HGO (Paracetamol + Ibuprofeno)\n```\n\n---\n\n## 4. ⚠️ Pendências\n\n- [ ] **Atualizar morada SNS** — verificar se foi transferido para CS Almada (morada ainda Lisboa no registo de fev/2025)\n- [ ] Obter NISS de Dominic (campo vazio no utente)\n- [ ] Registar eventuais vacinas em atraso / calendário vacinal\n- [ ] Acompanhamento escolar — 1º ano 2026/2027\n\n---\n\n## 5. Contactos de Saúde\n\n| Área | Profissional / Clínica | Contacto |\n|---|---|---|\n| Urgência pediátrica | H. Garcia de Orta | 212 940 294 |\n\n---\n\n*Nota gerada automaticamente em 2026-06-29 a partir dos documentos em pCloud.*\n*Fontes: 2024/Utente, 2026/Saúde (Virose Fevereiro)*"
-    },
-    {
-      "id": "desiree",
-      "nome": "Désirée Andrio Parwani Da Silva",
-      "primeiro_nome": "Désirée",
-      "emoji": "👶",
-      "idade": "4 meses",
-      "titular": false,
-      "ordem": 4,
-      "markdown": "## 1. Identificação\n\n| Campo | Valor |\n|---|---|\n| **Nome** | Désirée Andrio Parwani Da Silva |\n| **Data de Nascimento** | 21-02-2026 (4 meses) |\n| **Sexo** | Feminino |\n| **Peso ao nascer** | 3.820 g |\n| **Gestação** | 39 semanas |\n| **Local nascimento** | ULS Almada-Seixal, Bloco Partos |\n| **Mãe** | Helen Parwani .PT — Helen Lima Parwani |\n| **Pai** | Marcio Andrio .PT — Marcio Andrio Xavier Da Silva |\n| **Cartão Cidadão** | Emitido (fev/2026) |\n\n---\n\n## 2. Nascimento\n\n- **Entrada urgência:** 21-02-2026 às 08h06\n- **Nascimento:** 21-02-2026 às 11h20\n- **Episódio internamento:** 26004026\n- **Beneficiário mãe (ACORDO BRASIL):** Nº 000304.1933270/2024\n\n---\n\n## 3. Linha do Tempo\n\n```\n2026\n  FEV  → Nascimento (21-fev, 11h20, 3820g, 39 semanas)\n  FEV  → Declaração de nascimento emitida (ULS Almada-Seixal)\n  FEV  → Assento de nascimento registado\n  MAR  → Cartão Cidadão emitido\n```\n\n---\n\n## 4. ⚠️ Pendências\n\n- [ ] Registar Nº SNS / utente de Désirée (ainda não disponível)\n- [ ] **Vacinas — calendário vacinal** (0-6 meses: VHB, BCG, RV, DTPa, Hib, VIP, VPC13)\n- [ ] Consulta de saúde infantil — 1 mês, 2 meses, 4 meses, 6 meses\n- [ ] Inscrição em Centro de Saúde (UCSP Almada)\n- [ ] Verificar NISS de Désirée\n\n---\n\n## 5. Contactos de Saúde\n\n| Área | Contacto |\n|---|---|\n| Hospital nascimento | ULS Almada-Seixal — 212 940 294 |\n| CS a inscrever | UCSP Almada / ACES Almada-Seixal |\n\n---\n\n*Nota gerada automaticamente em 2026-06-29 a partir dos documentos em pCloud.*\n*Fontes: 2026/Registro Désirée (Declaração de nascimento, Assento, Cartão Cidadão)*"
-    }
-  ],
-  "dieta": {
-    "titulo": "Dieta — Perda de Peso (21-07-2026)",
-    "ficheiro": "Dieta - Perda de Peso 2026.07.21.md",
-    "markdown": "⚠️ Se a Sara Sofia já tiver uma versão mais recente do plano (mencionada como \"versão 3, out/2025\"), essa prevalece — este documento é um cardápio de apoio para seguir já, com base nos princípios que ela definiu.\n\n---\n\n## Princípios (mantidos do plano original)\n\n- Equilíbrio proteína/carboidratos em todas as refeições principais.\n- Máx. **1 colher de sopa de azeite** por refeição.\n- Lacticínios sempre na versão proteica (iogurte grego, skyr, queijo magro).\n- Fruta variada, sem repetir a mesma 2 dias seguidos.\n- Défice calórico moderado (~300-500 kcal/dia abaixo da manutenção) — sem cortes drásticos.\n- Água: mínimo 1,5-2L/dia.\n\n---\n\n## Estrutura diária\n\n| Hora | Refeição | Objetivo |\n|---|---|---|\n| 08:00 | Pequeno-almoço | Proteína + carboidrato de baixo IG |\n| 09:30 | Meio da manhã | 150g fruta |\n| 12:00 | Almoço | Sopa/salada + 1/4 acompanhamento + 1/4 proteína |\n| 16:30 | Lanche | Proteína leve + fruta ou oleaginosas |\n| 20:00 | Jantar | Igual ao almoço (mais leve) ou sopa + proteína magra |\n\n---\n\n## Cardápio — 7 dias\n\n### Segunda-feira\n- **08:00** — Iogurte grego natural (0%) + 30g aveia + canela\n- **09:30** — 1 maçã\n- **12:00** — Sopa de legumes + salada + 120g frango grelhado + 1 colher arroz integral\n- **16:30** — 2 ovos cozidos + punhado de nozes (6-7 un.)\n- **20:00** — Sopa de legumes + 100g pescada no forno + legumes salteados (1 c. sopa azeite)\n\n### Terça-feira\n- **08:00** — Pão escuro (1 fatia) + queijo fresco magro + tomate\n- **09:30** — 150g morangos\n- **12:00** — Salada de grão-de-bico, atum e vegetais (1 c. sopa azeite)\n- **16:30** — Skyr + 1 kiwi\n- **20:00** — Creme de legumes + omelete de 2 ovos com espinafres\n\n### Quarta-feira\n- **08:00** — Tapioca + 1 fatia fiambre de peru + queijo magro\n- **09:30** — 1 pera\n- **12:00** — Arroz integral + 120g peru grelhado + salada verde\n- **16:30** — Iogurte grego + 1 colher de chá mel + canela\n- **20:00** — Sopa + 120g salmão grelhado + brócolos no vapor\n\n### Quinta-feira\n- **08:00** — Iogurte grego + granola caseira sem açúcar + 100g mirtilos\n- **09:30** — 1 laranja\n- **12:00** — Massa integral + molho de tomate + 120g frango desfiado + salada\n- **16:30** — Queijo cottage + tomate cherry\n- **20:00** — Sopa de abóbora + 100g bacalhau cozido + legumes\n\n### Sexta-feira\n- **08:00** — Pão escuro + ovo mexido + abacate (1/4)\n- **09:30** — 150g melão ou meloa\n- **12:00** — Quinoa + 120g peixe branco + legumes assados (1 c. sopa azeite)\n- **16:30** — Skyr + amêndoas (6-7 un.)\n- **20:00** — Sopa + omelete de claras com cogumelos\n\n### Sábado\n- **08:00** — Panquecas de aveia e banana (sem açúcar) + iogurte grego\n- **09:30** — 1 pêssego\n- **12:00** — Refeição livre equilibrada (proteína + vegetais + 1 porção de carboidrato) — evitar fritos e refrigerantes\n- **16:30** — Fruta + punhado de frutos secos\n- **20:00** — Sopa + 120g proteína magra + salada\n\n### Domingo\n- **08:00** — Iogurte grego + fruta + 1 c. sopa aveia\n- **09:30** — 150g uvas\n- **12:00** — Arroz integral + 120g carne magra grelhada + legumes\n- **16:30** — Queijo fresco + tomate\n- **20:00** — Sopa + 2 ovos cozidos + salada verde\n\n---\n\n## Trocas permitidas (para variar sem sair da estrutura)\n\n- **Proteínas (100-120g):** frango, peru, peixe branco, salmão, atum, ovos, tofu.\n- **Carboidratos de baixo IG (1 porção):** arroz integral, quinoa, batata-doce, massa integral, pão escuro.\n- **Vegetais:** à vontade, cozidos, salteados ou crus (exceto batata frita).\n- **Fruta (150g):** maçã, pera, laranja, morangos, kiwi, mirtilos, pêssego, melão — variar sempre.\n- **Gordura:** 1 c. sopa azeite/refeição, ou 6-7 frutos secos como alternativa no lanche.\n\n## Evitar\n- Açúcar refinado, refrigerantes, fritos, pão branco e doces industrializados.\n- Álcool fora da refeição livre de sábado (com moderação).\n\n---\n\n## Pendências\n- [ ] Confirmar com a Sara Sofia se existe versão mais recente do plano (pós out/2025) e substituir este cardápio se houver.\n- [ ] Ajustar porções de proteína/carboidrato consoante evolução de peso a cada 2-3 semanas."
-  }
-}</script>
-
-<script>
-// ====== Mini parser Markdown → HTML ======
-function inline(t) {
-  return t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
-    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-    .replace(/\*(.+?)\*/g, "<em>$1</em>")
-    .replace(/`(.+?)`/g, "<code>$1</code>");
-}
-function renderMarkdown(md) {
-  const lines = (md || "").replace(/\r/g, "").split("\n");
-  let html = "", i = 0;
-  while (i < lines.length) {
-    let line = lines[i];
-    if (line.trim().startsWith("```")) {
-      i++; let buf = [];
-      while (i < lines.length && !lines[i].trim().startsWith("```")) { buf.push(lines[i]); i++; }
-      i++;
-      html += '<pre class="timeline">' + buf.join("\n").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;") + "</pre>";
-      continue;
-    }
-    if (line.includes("|") && i + 1 < lines.length && /^\s*\|?[\s:|-]+\|?\s*$/.test(lines[i + 1]) && lines[i + 1].includes("-")) {
-      const parseRow = r => r.replace(/^\s*\|/, "").replace(/\|\s*$/, "").split("|").map(c => c.trim());
-      const header = parseRow(line); i += 2; let rows = [];
-      while (i < lines.length && lines[i].includes("|") && lines[i].trim() !== "") { rows.push(parseRow(lines[i])); i++; }
-      html += '<div class="tbl-wrap"><table><thead><tr>' + header.map(h => "<th>" + inline(h) + "</th>").join("") + "</tr></thead><tbody>";
-      for (const r of rows) html += "<tr>" + r.map(c => "<td>" + inline(c) + "</td>").join("") + "</tr>";
-      html += "</tbody></table></div>";
-      continue;
-    }
-    let m;
-    if ((m = line.match(/^####\s+(.*)/))) { html += "<h4>" + inline(m[1]) + "</h4>"; i++; continue; }
-    if ((m = line.match(/^###\s+(.*)/)))  { html += "<h3>" + inline(m[1]) + "</h3>"; i++; continue; }
-    if ((m = line.match(/^##\s+(.*)/)))   { html += '<h2 class="sec">' + inline(m[1]) + "</h2>"; i++; continue; }
-    if ((m = line.match(/^#\s+(.*)/)))    { html += "<h3>" + inline(m[1]) + "</h3>"; i++; continue; }
-    if (/^---+\s*$/.test(line)) { html += "<hr>"; i++; continue; }
-    if (line.trim().startsWith(">")) {
-      let buf = [];
-      while (i < lines.length && lines[i].trim().startsWith(">")) { buf.push(lines[i].replace(/^\s*>\s?/, "")); i++; }
-      const joined = buf.join(" ");
-      html += '<blockquote class="' + (/⚠️/.test(joined) ? "warn" : "") + '">' + inline(joined) + "</blockquote>";
-      continue;
-    }
-    if (/^\s*-\s+/.test(line)) {
-      let buf = [];
-      while (i < lines.length && /^\s*-\s+/.test(lines[i])) { buf.push(lines[i]); i++; }
-      html += "<ul>";
-      for (let item of buf) {
-        const raw = item.replace(/^\s*-\s+/, "");
-        const task = raw.match(/^\[([ xX])\]\s+(.*)/);
-        if (task) {
-          const done = task[1].toLowerCase() === "x";
-          html += '<li class="task' + (done ? " done" : "") + '"><span class="box"></span>' + inline(task[2]) + "</li>";
-        } else { html += "<li>" + inline(raw) + "</li>"; }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Saúde — Família Andrio</title>
+    <link rel="icon" href="../img/clementine-icon.png" type="image/png" />
+    <link rel="apple-touch-icon" href="../img/clementine-icon.png" />
+    <style>
+      :root {
+        --bg: #0a0e14;
+        --bg2: #0f1520;
+        --panel: #131b28;
+        --panel2: #182233;
+        --border: #223047;
+        --text: #dce6f2;
+        --muted: #8595a8;
+        --accent: #2dd4bf;
+        --accent2: #38bdf8;
+        --warn: #f59e0b;
+        --danger: #f87171;
+        --ok: #34d399;
       }
-      html += "</ul>";
-      continue;
-    }
-    if (line.trim() !== "") { html += "<p>" + inline(line) + "</p>"; }
-    i++;
-  }
-  return html;
-}
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        background: radial-gradient(
+          1200px 800px at 20% -10%,
+          #12202e 0%,
+          var(--bg) 55%
+        );
+        color: var(--text);
+        font-family:
+          -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        line-height: 1.55;
+        min-height: 100vh;
+        padding-bottom: 60px;
+      }
+      header {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        backdrop-filter: blur(12px);
+        background: rgba(10, 14, 20, 0.82);
+        border-bottom: 1px solid var(--border);
+      }
+      .head-inner {
+        max-width: 1080px;
+        margin: 0 auto;
+        padding: 16px 22px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-right: auto;
+      }
+      .brand .logo {
+        width: 40px;
+        height: 40px;
+        border-radius: 11px;
+        background: linear-gradient(135deg, var(--accent), var(--accent2));
+        display: grid;
+        place-items: center;
+        font-size: 22px;
+        box-shadow: 0 0 22px rgba(45, 212, 191, 0.35);
+      }
+      .brand h1 {
+        font-size: 18px;
+        font-weight: 700;
+        letter-spacing: 0.2px;
+      }
+      .brand p {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .brand .stamp {
+        font-size: 11px;
+        color: var(--muted);
+      }
+      .actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .btn {
+        font: inherit;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text);
+        background: var(--panel2);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 9px 14px;
+        cursor: pointer;
+        transition: all 0.15s;
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        text-decoration: none;
+      }
+      .btn:hover {
+        border-color: var(--accent);
+        color: #fff;
+        transform: translateY(-1px);
+      }
+      .btn.primary {
+        background: linear-gradient(135deg, var(--accent), var(--accent2));
+        color: #04121a;
+        border-color: transparent;
+      }
+      .btn.primary:hover {
+        box-shadow: 0 6px 18px rgba(45, 212, 191, 0.3);
+      }
 
-// ====== Carregar dados (fetch saude.json → fallback embutido) ======
-let DATA = null;
-let currentPerson = null;
+      nav.tabs {
+        max-width: 1080px;
+        margin: 0 auto;
+        padding: 12px 22px 0;
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .tab {
+        font: inherit;
+        font-size: 13.5px;
+        font-weight: 600;
+        color: var(--muted);
+        background: transparent;
+        border: 1px solid transparent;
+        border-radius: 10px 10px 0 0;
+        padding: 9px 15px;
+        cursor: pointer;
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .tab .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--muted);
+      }
+      .tab:hover {
+        color: var(--text);
+      }
+      .tab.active {
+        color: #fff;
+        background: var(--panel);
+        border-color: var(--border);
+        border-bottom-color: var(--panel);
+      }
+      .tab.active .dot {
+        background: var(--accent);
+        box-shadow: 0 0 8px var(--accent);
+      }
+      .tab .age {
+        font-size: 11px;
+        color: var(--muted);
+        font-weight: 500;
+      }
 
-async function carregar() {
-  try {
-    const resp = await fetch("saude.json", { cache: "no-store" });
-    if (!resp.ok) throw new Error("HTTP " + resp.status);
-    DATA = await resp.json();
-  } catch (e) {
-    try {
-      const raw = document.getElementById("fallback-data").textContent;
-      DATA = JSON.parse(raw);
-      console.info("saude.json não acessível (" + e.message + ") — a usar fallback embutido.");
-    } catch (e2) {
-      document.getElementById("main").innerHTML =
-        '<div class="loading">⚠️ Não foi possível carregar <code>saude.json</code>. ' +
-        'Gere o ficheiro e coloque-o nesta pasta.</div>';
-      return;
-    }
-  }
-  construir();
-}
+      main {
+        max-width: 1080px;
+        margin: 0 auto;
+        padding: 22px;
+      }
+      .panel {
+        display: none;
+        animation: fade 0.25s ease;
+      }
+      .panel.active {
+        display: block;
+      }
+      @keyframes fade {
+        from {
+          opacity: 0;
+          transform: translateY(6px);
+        }
+        to {
+          opacity: 1;
+          transform: none;
+        }
+      }
 
-function roleDe(p) {
-  if (p.titular) return "Titular" + (p.idade ? " · " + p.idade : "");
-  return p.idade || "Familiar";
-}
+      .person-head {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 18px;
+        padding: 18px 20px;
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        background: linear-gradient(135deg, var(--panel), var(--bg2));
+      }
+      .avatar {
+        width: 54px;
+        height: 54px;
+        border-radius: 14px;
+        flex-shrink: 0;
+        display: grid;
+        place-items: center;
+        font-size: 26px;
+        font-weight: 700;
+        background: var(--panel2);
+        border: 1px solid var(--border);
+      }
+      .person-head h2 {
+        font-size: 20px;
+      }
+      .person-head .sub {
+        color: var(--muted);
+        font-size: 13px;
+      }
 
-function construir() {
-  const tabsEl = document.getElementById("tabs");
-  const mainEl = document.getElementById("main");
-  tabsEl.innerHTML = ""; mainEl.innerHTML = "";
+      .content h2.sec {
+        font-size: 15px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--accent);
+        margin: 30px 0 12px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .content h3 {
+        font-size: 15px;
+        margin: 20px 0 8px;
+        color: #eaf2fb;
+      }
+      .content h4 {
+        font-size: 13.5px;
+        margin: 14px 0 6px;
+        color: var(--muted);
+      }
+      .content p {
+        margin: 8px 0;
+        color: var(--text);
+      }
+      .content ul {
+        list-style: none;
+        margin: 8px 0;
+      }
+      .content li {
+        position: relative;
+        padding-left: 22px;
+        margin: 5px 0;
+      }
+      .content li::before {
+        content: "›";
+        position: absolute;
+        left: 6px;
+        color: var(--accent);
+        font-weight: 700;
+      }
+      .content li.task {
+        padding-left: 30px;
+      }
+      .content li.task::before {
+        content: "";
+      }
+      .content li.task .box {
+        position: absolute;
+        left: 4px;
+        top: 3px;
+        width: 16px;
+        height: 16px;
+        border: 1.5px solid var(--muted);
+        border-radius: 4px;
+      }
+      .content li.task.done .box {
+        background: var(--ok);
+        border-color: var(--ok);
+      }
+      .content li.task.done .box::after {
+        content: "✓";
+        position: absolute;
+        inset: -2px 0 0 2px;
+        font-size: 12px;
+        color: #04121a;
+        font-weight: 800;
+      }
+      .content blockquote {
+        border-left: 3px solid var(--accent2);
+        background: rgba(56, 189, 248, 0.06);
+        padding: 10px 14px;
+        margin: 12px 0;
+        border-radius: 0 8px 8px 0;
+        color: #bcd3e8;
+        font-size: 13.5px;
+      }
+      .content blockquote.warn {
+        border-left-color: var(--warn);
+        background: rgba(245, 158, 11, 0.07);
+      }
+      .content strong {
+        color: #fff;
+        font-weight: 650;
+      }
+      .content hr {
+        border: none;
+        border-top: 1px solid var(--border);
+        margin: 22px 0;
+        opacity: 0.5;
+      }
+      .content a {
+        color: var(--accent2);
+        text-decoration: none;
+      }
+      .content .tbl-wrap {
+        overflow-x: auto;
+        margin: 12px 0;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+      }
+      .content table {
+        border-collapse: collapse;
+        width: 100%;
+        font-size: 13px;
+      }
+      .content th {
+        background: var(--panel2);
+        text-align: left;
+        padding: 10px 13px;
+        color: var(--accent);
+        font-weight: 600;
+        white-space: nowrap;
+        border-bottom: 1px solid var(--border);
+      }
+      .content td {
+        padding: 9px 13px;
+        border-bottom: 1px solid rgba(34, 48, 71, 0.5);
+        vertical-align: top;
+      }
+      .content tr:last-child td {
+        border-bottom: none;
+      }
+      .content tr:hover td {
+        background: rgba(45, 212, 191, 0.04);
+      }
+      .content pre.timeline {
+        background: var(--bg2);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 16px 18px;
+        margin: 12px 0;
+        overflow-x: auto;
+        font-family: "SF Mono", "Courier New", monospace;
+        font-size: 12.5px;
+        color: #a9c3dc;
+        line-height: 1.7;
+      }
+      .diet-banner {
+        margin-top: 26px;
+        padding: 16px 18px;
+        border-radius: 14px;
+        border: 1px dashed var(--accent);
+        background: rgba(45, 212, 191, 0.06);
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        flex-wrap: wrap;
+      }
+      .diet-banner .t {
+        margin-right: auto;
+      }
+      .diet-banner .t b {
+        color: #fff;
+        font-size: 15px;
+      }
+      .diet-banner .t span {
+        display: block;
+        color: var(--muted);
+        font-size: 12.5px;
+      }
+      footer.note {
+        max-width: 1080px;
+        margin: 24px auto 0;
+        padding: 0 22px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+      footer.note code {
+        background: var(--panel2);
+        padding: 1px 5px;
+        border-radius: 4px;
+      }
+      .loading {
+        max-width: 1080px;
+        margin: 60px auto;
+        padding: 0 22px;
+        color: var(--muted);
+        text-align: center;
+      }
 
-  document.getElementById("stamp").textContent = DATA.gerado_em ? "· atualizado " + DATA.gerado_em : "";
+      @media print {
+        @page {
+          margin: 14mm 12mm;
+        }
+        body {
+          background: #fff !important;
+          color: #111 !important;
+          padding: 0;
+        }
+        header,
+        nav.tabs,
+        .actions,
+        .diet-banner,
+        footer.note,
+        .no-print {
+          display: none !important;
+        }
+        main {
+          max-width: none;
+          padding: 0;
+        }
+        .panel {
+          display: none !important;
+        }
+        body.print-full .panel.active {
+          display: block !important;
+        }
+        body.print-diet .panel {
+          display: none !important;
+        }
+        body.print-diet #diet-print {
+          display: block !important;
+        }
+        .print-header {
+          display: block !important;
+          text-align: center;
+          margin-bottom: 14px;
+          padding-bottom: 10px;
+          border-bottom: 2px solid #111;
+        }
+        .print-header h1 {
+          font-size: 20px;
+          color: #111;
+        }
+        .print-header p {
+          font-size: 11px;
+          color: #555;
+        }
+        .person-head {
+          background: none !important;
+          border: 1px solid #ccc;
+        }
+        .person-head h2,
+        .person-head .sub,
+        .avatar {
+          color: #111 !important;
+        }
+        .content h2.sec {
+          color: #0d9488 !important;
+          border-color: #ccc;
+        }
+        .content h3,
+        .content h4,
+        .content p,
+        .content li,
+        .content strong {
+          color: #111 !important;
+        }
+        .content blockquote {
+          color: #333 !important;
+          background: #f4f8f7 !important;
+        }
+        .content .tbl-wrap {
+          border-color: #ccc;
+        }
+        .content th {
+          background: #eef3f2 !important;
+          color: #0d9488 !important;
+          -webkit-print-color-adjust: exact;
+        }
+        .content td {
+          border-color: #ddd;
+        }
+        .content pre.timeline {
+          background: #f6f8fa !important;
+          color: #333 !important;
+          border-color: #ccc;
+        }
+        .content li.task .box {
+          border-color: #888;
+        }
+        .content li.task.done .box {
+          background: #0d9488 !important;
+          -webkit-print-color-adjust: exact;
+        }
+        .content table,
+        .content tr,
+        .person-head {
+          page-break-inside: avoid;
+        }
+        a {
+          color: #111 !important;
+        }
+      }
+      .print-header {
+        display: none;
+      }
+      #diet-print {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="head-inner">
+        <div class="brand">
+          <div class="logo">🏥</div>
+          <div>
+            <h1>Saúde — Família Andrio</h1>
+            <p>
+              Histórico consolidado · pasta <em>07. Saúde</em>
+              <span class="stamp" id="stamp"></span>
+            </p>
+          </div>
+        </div>
+        <div class="actions">
+          <a class="btn" href="../index.html">← Início</a>
+          <button class="btn" onclick="printFull()">🖨️ PDF do histórico</button>
+          <button class="btn primary" onclick="printDiet()">
+            🥗 PDF da Dieta
+          </button>
+        </div>
+      </div>
+      <nav class="tabs" id="tabs"></nav>
+    </header>
 
-  const titular = DATA.pessoas.find(p => p.titular) || DATA.pessoas[0];
+    <div class="print-header">
+      <h1 id="print-title">Histórico de Saúde</h1>
+      <p id="print-sub"></p>
+    </div>
 
-  DATA.pessoas.forEach((p, idx) => {
-    const first = idx === 0;
-    const tab = document.createElement("button");
-    tab.className = "tab" + (first ? " active" : "");
-    tab.dataset.person = p.id;
-    tab.innerHTML = '<span class="dot"></span>' + p.emoji + " " + p.primeiro_nome +
-                    (p.idade ? ' <span class="age">' + p.idade + "</span>" : "");
-    tab.onclick = () => selectPerson(p.id);
-    tabsEl.appendChild(tab);
+    <main id="main"><div class="loading">A carregar dados de saúde…</div></main>
 
-    const panel = document.createElement("section");
-    panel.className = "panel" + (first ? " active" : "");
-    panel.id = "panel-" + p.id;
-    let inner = '<div class="person-head"><div class="avatar">' + p.emoji + "</div>" +
-      "<div><h2>" + p.nome + '</h2><div class="sub">' + roleDe(p) + "</div></div></div>";
-    inner += '<div class="content">' + renderMarkdown(p.markdown) + "</div>";
+    <div id="diet-print"></div>
 
-    if (p.id === titular.id && DATA.dieta) {
-      inner += '<div class="diet-banner no-print"><div class="t"><b>🥗 ' + DATA.dieta.titulo + "</b>" +
-        "<span>Cardápio e horários — clique para gerar o PDF da dieta</span></div>" +
-        '<button class="btn primary" onclick="printDiet()">Gerar PDF da Dieta</button></div>';
-      inner += '<div class="content" style="margin-top:24px"><h2 class="sec">🥗 ' + DATA.dieta.titulo + " (cardápio ativo)</h2>" +
-        renderMarkdown(DATA.dieta.markdown) + "</div>";
-    }
-    panel.innerHTML = inner;
-    mainEl.appendChild(panel);
-  });
+    <footer class="note">
+      Dados carregados de <code>saude.json</code> (gerado a partir das notas da
+      pasta <code>07. Saúde</code>). Para atualizar: edite as notas → gere um
+      novo <code>saude.json</code> (via <code>gerar_saude.html</code> ou
+      <code>gerar_saude_json.py</code>) → guarde-o nesta mesma pasta e faça
+      commit.
+    </footer>
 
-  currentPerson = DATA.pessoas[0].id;
+    <!-- Fallback embutido: usado quando o saude.json não pode ser carregado (ex.: abrir por file://). -->
+    <script type="application/json" id="fallback-data">
+      {
+        "gerado_em": "2026-07-21",
+        "pessoas": [
+          {
+            "id": "marcio",
+            "nome": "Marcio Andrio Xavier Da Silva",
+            "primeiro_nome": "Marcio",
+            "emoji": "👨",
+            "idade": "",
+            "titular": true,
+            "ordem": 0,
+            "markdown": "## 1. Identificação e Cartões de Saúde\n\n| Campo | Valor |\n|---|---|\n| **Nome** | Marcio Andrio Xavier Da Silva |\n| **Data de Nascimento** | 27-02-1981 |\n| **NIF** | 316 618 616 |\n| **NISS** | 12171150447 |\n| **Passaporte** | GF841231 |\n| **Título de Residência** | 2V66862F1 (val. 16-04-2027) |\n| **Nº Utente SNS** | 255073919 |\n| **Centro de Saúde** | UCSP Almada / ACES Almada-Seixal |\n| **Nº Inscrição CS** | 3150307-2106501 (inscrito 29-07-2025) |\n| **CESD (Cartão Europeu)** | 80620011070007184811 (val. 16-04-2027) |\n| **Isenção taxa moderadora** | Sem isenção |\n| **Morada** | Av. Dom Afonso Henriques, 14, 2º Dto, 2800-009 Almada |\n\n> ⚠️ Nota: Utente de fev/2025 ainda registado em Faro/Fernão Ferro. Transferência para Almada confirmada em abr/2026.\n\n---\n\n## 2. Oftalmologia\n\n### 📋 Graus Atuais (fev-mar 2025 — mais recentes)\n\n| | Olho Direito (OD) | Olho Esquerdo (OE) |\n|---|---|---|\n| **Longe — Esf** | +0,50 | +0,50 |\n| **Longe — Cil** | -0,50 | -0,25 |\n| **Longe — Eixo** | 105° | 90° |\n| **Perto — Esf** | +2,25 | +2,25 |\n| **Perto — Cil** | -0,50 | -0,25 |\n| **Perto — Eixo** | 105° | 90° |\n\n*Exame por Ana Beatriz Martins, Ortoptista (Cédula C-075676125), Pharmacontinente — 17-02-2025*\n\n### 💊 Última Receita (13-03-2025)\n- **Profissional:** Dra. Lígia Piedade (Ortoptista, Cédula C-028241118, ERS nº E131013)\n- **Indicação:** Lentes monofocais para perto — distância 20/25 cm — HD Blue\n- **Lubrificante ocular:** Systane Complete 2x/dia\n\n### 🕒 Linha do Tempo\n\n| Data | Evento |\n|---|---|\n| 27-04-2024 | Receita de óculos — Eduardo Gomes, Optometrista APLO nº 1336 |\n| 08-05-2024 | Compra de óculos progressivos — Ótica Gomes Formiga, Amadora (228€) |\n| 17-02-2025 | Exame de vista — Pharmacontinente (graus confirmados) |\n| 13-03-2025 | Receita óculos de leitura — Dra. Lígia Piedade |\n\n### ⚙️ Óculos 2024 (progressivos)\n- **Ótica:** Gomes Formiga, Amadora (NIF 516750402, Tel 214947646)\n- **Modelo:** WorkSmart Room 200 (lentes progressivas)\n- OD: Diâm 70 | Esf +0,50 | Cil -0,50 | Add 1,50\n- OE: Diâm 70 | Esf +0,50 | Cil -0,50 | Add 1,50\n- **Pago:** 228,00€ (08-05-2024)\n\n---\n\n## 3. Odontologia / Dentário\n\n### 🦷 Clínicas\n\n| Clínica | Contacto | Nº Cliente |\n|---|---|---|\n| Clínica Médico Dentária da Renovação, Almada | Tel: 21 272 98 10 \\| NIF 503426040 | 3372 |\n| One World One Health / Clínica Egas Moniz, Almada | Tel: (+351) 212 720 830 | 125413 |\n\n### 🕒 Linha do Tempo\n\n| Data | Evento | Valor |\n|---|---|---|\n| 20-08-2024 | Limpeza dentária — Clínica Renovação | 70,00€ |\n| 20-02-2025 | Limpeza dentária — Clínica Renovação | 75,00€ |\n| 05-03-2026 | Detartrização + polimento + jacto bicarbonato + verniz flúor — Egas Moniz | 87,57€ |\n| **03-09-2026** | **⏳ Consulta agendada — Dra. Cat Galhanas, Egas Moniz (14h00)** | — |\n\n---\n\n## 4. Nutrição\n\n### 🥗 Plano Alimentar Ativo\n\n- **Nutricionista:** Sara Sofia\n- **Nº Cliente:** 279403\n- **Data do plano:** 18-07-2025 (3 versões progressivas até outubro 2025)\n\n#### Estrutura diária\n\n| Hora | Refeição |\n|---|---|\n| 08:00 | Pequeno-almoço (iogurte grego / pão escuro / tapioca + proteína) |\n| 09:30 | Meio da manhã (150g fruta) |\n| 11:30/12:00 | Almoço (sopa/salada + 1/4 acompanhamento + 1/4 proteína) |\n| 14:00/17:00 | Lanche / pré-treino |\n| 20:00 | Jantar (= almoço ou sopa + proteína leve) |\n\n**Princípios:** equilíbrio proteína/carboidratos, máx. 1 c.sopa azeite/refeição, lacticínios proteicos, frutas variadas.\n\n#### 🎯 Cardápio ativo (perda de peso)\n> Dieta - Perda de Peso 2026.07.21 — cardápio de 7 dias construído sobre a estrutura acima, objetivo perda de peso (défice moderado). Substituir se a Sara Sofia enviar versão mais recente.\n\n---\n\n## 5. Quiroprática / Coluna\n\n### 🦴 Solicitações e Consultas\n\n| Data     | Evento                                                                  | Estado         |\n| -------- | ----------------------------------------------------------------------- | -------------- |\n| Mar-2026 | Consulta quiroprática — Dr. A. Negri (LINC C-00090), Laranjeiro, Almada | ✅ Realizada    |\n| Mar-2026 | Solicitação RX coluna cervical (AP + Lateral, em carga)                 | ⏳ **PENDENTE** |\n| Mar-2026 | Solicitação RX coluna lombar (AP + Lateral, em carga)                   | ⏳ **PENDENTE** |\n\n> 📞 Contacto: Rua Botão do Lar, nº4, 2810-186 Laranjeiro-Almada | almadaq uiro@gmail.com\n\n---\n\n## 6. Linha do Tempo Global\n\n```\n2024\n  ABR  → Receita de óculos (Eduardo Gomes, Amadora)\n  MAI  → Compra óculos progressivos (228€)\n  AGO  → Limpeza dentária Renovação (70€)\n\n2025\n  FEV  → Exame de vista (Pharmacontinente)\n  FEV  → Limpeza dentária Renovação (75€)\n  FEV  → Registo utente (Faro — endereço antigo)\n  MAR  → Receita óculos de leitura (Dra. Lígia Piedade)\n  JUL  → Início acompanhamento nutricionista Sara Sofia\n  OUT  → Atualização plano alimentar (versão 3)\n\n2026\n  MAR  → Consulta quiroprática + Solicitação RX coluna (pendente)\n  MAR  → Limpeza dentária Egas Moniz (87,57€)\n  ABR  → Atualização cartão utente — Almada (CESD emitido, val. 2027-04-16)\n  SET  → ⏳ Consulta dentária agendada (03-set-2026, 14h, Egas Moniz)\n```\n\n---\n\n## 7. ⚠️ Pendências\n\n- [ ] **Realizar raio-X coluna cervical** (AP + Lateral, em carga) — solicitado pelo Dr. A. Negri, mar/2026\n- [ ] **Realizar raio-X coluna lombar** (AP + Lateral, em carga) — solicitado pelo Dr. A. Negri, mar/2026\n- [ ] **Consulta dentária** — 03-set-2026, 14h00, Dra. Cat Galhanas, Egas Moniz Almada\n- [ ] **Renovar Título de Residência** (val. 16-04-2027) — prever com antecedência\n- [ ] **Renovar CESD** (val. 16-04-2027) — pedir à Segurança Social\n- [ ] Confirmar se raio-X foi realizado e juntar resultado à nota\n- [ ] Próxima consulta oftalmológica (última em mar/2025 — há mais de 1 ano)\n- [ ] Atualizar plano alimentar com Sara Sofia se houver nova versão\n\n---\n\n## 8. Contactos de Saúde\n\n| Área | Profissional / Clínica | Contacto |\n|---|---|---|\n| Oftalmologia | Ótica Gomes Formiga, Amadora | 214 947 646 |\n| Oftalmologia | ERS E131013 (Dra. Lígia Piedade) | — |\n| Dentário | Clínica Renovação, Almada | 21 272 98 10 |\n| Dentário | Egas Moniz / One World One Health | (+351) 212 720 830 |\n| Nutrição | Sara Sofia | — |\n| Quiroprática | Dr. A. Negri, Laranjeiro | almadaquiro@gmail.com |\n| SNS | Centro de Saúde UCSP Almada | — |\n\n---\n\n*Nota gerada automaticamente em 2026-06-29 a partir dos documentos em pCloud.*\n*Fontes: 2024/Saúde, 2025/Saúde, 2026/Saúde, 2026/Cartão de Saúde*"
+          },
+          {
+            "id": "helen",
+            "nome": "Helen Lima Parwani",
+            "primeiro_nome": "Helen",
+            "emoji": "👩",
+            "idade": "",
+            "titular": false,
+            "ordem": 1,
+            "markdown": "## 1. Identificação\n\n| Campo | Valor |\n|---|---|\n| **Nome** | Helen Lima Parwani |\n| **NIF** | 330282700 |\n| **Morada** | Av. Dom Afonso Henriques, 14, 2º Dto, 2800-009 Almada |\n| **Hospital de referência** | ULS Almada-Seixal / Hospital Garcia de Orta |\n\n---\n\n## 2. Obstetrícia / Gravidez\n\n### 🤰 Gravidez 2025–2026 (Désirée)\n\n| Data | Evento |\n|---|---|\n| 20-02-2025 | Ecografia pélvica (sonda vaginal) — Human Clinic, Almada — 80,00€ (prescritor Dr. Rafael Leiróz) |\n| 26-08-2025 | Receita obstreta — Fosfomicina 3000mg (H. Garcia de Orta URG, Dra. Ana Rita Agostinho) — ITU na gravidez |\n| 12-02-2026 | Consulta Periparto — H. Garcia de Orta, 15h30 |\n| **21-02-2026** | **Parto** — internamento Bloco Partos, ULS Almada-Seixal (entrada urgência 08h06) |\n\n### 👶 Dados do Parto — Désirée\n- **Data/hora nascimento:** 21-02-2026 às 11h20\n- **Sexo:** Feminino\n- **Peso:** 3.820 g\n- **Gestação:** 39 semanas\n- **Episódio internamento:** 26004026\n\n---\n\n## 3. Linha do Tempo Global\n\n```\n2025\n  FEV  → Ecografia pélvica (Human Clinic, 80€)\n  AGO  → Receita obstreta — Fosfomicina (ITU gravidez)\n\n2026\n  FEV  → Consulta Periparto (12-fev, 15h30, HGO)\n  FEV  → Parto — nascimento de Désirée (21-fev, 11h20, 3820g, 39sem)\n```\n\n---\n\n## 4. ⚠️ Pendências\n\n- [ ] Obter e registar Nº SNS de utente da Helen\n- [ ] Consulta puerpério / revisão pós-parto (6 semanas após parto)\n- [ ] Acompanhamento pediatria da Désirée (ver MOC - Saúde Désirée Andrio)\n\n---\n\n## 5. Contactos de Saúde\n\n| Área | Profissional / Clínica | Contacto |\n|---|---|---|\n| Ecografia | Human Clinic, Almada | 211 336 106 / 927 438 232 |\n| Obstetrícia urgência | H. Garcia de Orta URG | 212 940 294 |\n| Consulta externa | ULS Almada-Seixal | secretariado.consexterna@ulsas.min-saude.pt |\n\n---\n\n*Nota gerada automaticamente em 2026-06-29 a partir dos documentos em pCloud.*\n*Fontes: 2025/Saúde (Obstreta), 2026/Saúde (Nascimento Désirée)*"
+          },
+          {
+            "id": "victor",
+            "nome": "Victor Andrio Parwani Da Silva",
+            "primeiro_nome": "Victor",
+            "emoji": "🧒",
+            "idade": "12 anos",
+            "titular": false,
+            "ordem": 2,
+            "markdown": "## 1. Identificação\n\n| Campo | Valor |\n|---|---|\n| **Nome** | Victor Andrio Parwani Da Silva |\n| **Data de Nascimento** | 31-07-2013 (12 anos) |\n| **Sexo** | Masculino |\n| **Nº SNS** | 255068592 |\n| **Processo HGO** | 25019734 |\n| **Morada** | Av. Dom Afonso Henriques, 14, 2º Dto, S24, 2800-009 Almada |\n| **Tel.** | 929076693 |\n| **Hospital de referência** | ULS Almada-Seixal / Hospital Garcia de Orta |\n| **Médica Pediatria** | Dra. Ana Sofia Fraga (nº 41294) |\n\n---\n\n## 2. Condições de Saúde\n\n### 🫁 Respiratório (Asma / Brônquica)\n- **Medicação:** Budesonida + Formoterol — Biformix Easyhaler 160µg/dose + 4,5µg/dose\n- **Posologia:** 1 inalação manhã e noite; até 12 inalações/dia em crise\n- **Prescrito:** 28-05-2025 — Dra. Elda Marques da Costa — H. Garcia de Orta Int\n- **Validade receita:** até 29-05-2026 (a renovar)\n\n### 🧠 Dislexia\n- **Exame:** realizado em out/2025 (documento físico/scan — sem texto digital)\n- **Acompanhamento escolar:** em curso\n\n### 👂 Otorrino\n- **Receita:** 16-09-2025 — Dra. Ana Sofia Fraga — Pediatria Geral, HGO\n- **Conteúdo:** manuscrito (digitalizar)\n\n### 🥗 Nutrição (jun 2026)\n- **Plano:** Serviço de Nutrição e Dietética, Hospital Garcia de Orta (14-06-2026)\n- **Estrutura:** pequeno-almoço, meio manhã, almoço, lanche, jantar, ceia\n- **Princípios:** redução açúcares, poupar sal, refeições regulares, 45-60 min exercício/dia\n\n---\n\n## 3. Linha do Tempo\n\n```\n2025\n  MAI  → Doença + atestado médico (27-30/mai, Dra. Filipa A. Ferreira)\n  MAI  → Receita Biformix Easyhaler (asma, Dra. Elda Marques)\n  SET  → Consulta Pediatria Geral + receita otorrino (Dra. Ana Sofia Fraga)\n  OUT  → Exame Dislexia (scan)\n\n2026\n  MAI  → Consulta Pediatria Geral reagendada para 01/05/2026, 11h30\n  JUN  → Plano alimentar (Nutrição/Dietética, HGO, 14-jun)\n  JUN  → Receita médica (Dra. Margarida Carneiro M77547, 14-jun)\n```\n\n---\n\n## 4. ⚠️ Pendências\n\n- [ ] **Renovar receita Biformix Easyhaler** (val. receita expirou mai/2026)\n- [ ] **Relatório dislexia** — digitalizar e registar diagnóstico completo\n- [ ] **Resultado consulta Otorrino** — confirmar tratamento e seguimento\n- [ ] **Plano escolar** para apoio à dislexia — ligar com escola (6º ano)\n- [ ] Próxima consulta Pediatria Geral — verificar data após mai/2026\n\n---\n\n## 5. Contactos de Saúde\n\n| Área | Profissional / Clínica | Contacto |\n|---|---|---|\n| Pediatria / Medicina Geral | Dra. Ana Sofia Fraga (41294) — HGO | 212 940 294 |\n| Respiratório | Dra. Elda Marques da Costa — HGO | 212 940 294 |\n| Nutrição | Serviço Nutrição/Dietética — HGO | 212 726 844 |\n| Consultas externas | secretariado.consexterna@ulsas.min-saude.pt | — |\n\n---\n\n*Nota gerada automaticamente em 2026-06-29 a partir dos documentos em pCloud.*\n*Fontes: 2025/Saúde (Dislexia, Otorrino, Acompanhamento), 2025/Hospital Garcia de Orta, 2026/Saúde*"
+          },
+          {
+            "id": "dominic",
+            "nome": "Dominic Andrio Parwani Da Silva",
+            "primeiro_nome": "Dominic",
+            "emoji": "🧒",
+            "idade": "6 anos",
+            "titular": false,
+            "ordem": 3,
+            "markdown": "## 1. Identificação\n\n| Campo | Valor |\n|---|---|\n| **Nome** | Dominic Andrio Parwani Da Silva |\n| **Data de Nascimento** | 16-09-2019 (6 anos) |\n| **Sexo** | Masculino |\n| **Nº Utente SNS** | 255075158 |\n| **NIF** | 330282476 |\n| **Passaporte** | GF841230 |\n| **Isenção Taxa Moderadora** | SIM — Código 201 (val. 16-09-2037) |\n| **Morada atual** | Av. Dom Afonso Henriques, 14, Almada |\n| **Hospital de referência** | ULS Almada-Seixal / Hospital Garcia de Orta |\n\n> ⚠️ Utente registado em 11-02-2025 com morada antiga (Rua do Benformoso 179, Lisboa). Verificar se foi atualizado para Almada.\n\n---\n\n## 2. Histórico de Saúde\n\n### 🤒 Virose — Fevereiro 2026\n\n- **Data:** 09-02-2026\n- **Local:** H. Garcia de Orta URG — Dra. Maria Inês Marques\n- **Medicação prescrita:**\n  - Paracetamol 40mg/ml xarope — 14ml SOS de 6/6h\n  - Ibuprofeno 40mg/ml suspensão oral — 7ml SOS de 8/8h\n  - Válida até: 12-03-2026\n\n---\n\n## 3. Linha do Tempo\n\n```\n2024\n  SET  → Inscrição como utente SNS (Nº 255075158)\n\n2026\n  FEV  → Virose — urgência HGO (Paracetamol + Ibuprofeno)\n```\n\n---\n\n## 4. ⚠️ Pendências\n\n- [ ] **Atualizar morada SNS** — verificar se foi transferido para CS Almada (morada ainda Lisboa no registo de fev/2025)\n- [ ] Obter NISS de Dominic (campo vazio no utente)\n- [ ] Registar eventuais vacinas em atraso / calendário vacinal\n- [ ] Acompanhamento escolar — 1º ano 2026/2027\n\n---\n\n## 5. Contactos de Saúde\n\n| Área | Profissional / Clínica | Contacto |\n|---|---|---|\n| Urgência pediátrica | H. Garcia de Orta | 212 940 294 |\n\n---\n\n*Nota gerada automaticamente em 2026-06-29 a partir dos documentos em pCloud.*\n*Fontes: 2024/Utente, 2026/Saúde (Virose Fevereiro)*"
+          },
+          {
+            "id": "desiree",
+            "nome": "Désirée Andrio Parwani Da Silva",
+            "primeiro_nome": "Désirée",
+            "emoji": "👶",
+            "idade": "4 meses",
+            "titular": false,
+            "ordem": 4,
+            "markdown": "## 1. Identificação\n\n| Campo | Valor |\n|---|---|\n| **Nome** | Désirée Andrio Parwani Da Silva |\n| **Data de Nascimento** | 21-02-2026 (4 meses) |\n| **Sexo** | Feminino |\n| **Peso ao nascer** | 3.820 g |\n| **Gestação** | 39 semanas |\n| **Local nascimento** | ULS Almada-Seixal, Bloco Partos |\n| **Mãe** | Helen Parwani .PT — Helen Lima Parwani |\n| **Pai** | Marcio Andrio .PT — Marcio Andrio Xavier Da Silva |\n| **Cartão Cidadão** | Emitido (fev/2026) |\n\n---\n\n## 2. Nascimento\n\n- **Entrada urgência:** 21-02-2026 às 08h06\n- **Nascimento:** 21-02-2026 às 11h20\n- **Episódio internamento:** 26004026\n- **Beneficiário mãe (ACORDO BRASIL):** Nº 000304.1933270/2024\n\n---\n\n## 3. Linha do Tempo\n\n```\n2026\n  FEV  → Nascimento (21-fev, 11h20, 3820g, 39 semanas)\n  FEV  → Declaração de nascimento emitida (ULS Almada-Seixal)\n  FEV  → Assento de nascimento registado\n  MAR  → Cartão Cidadão emitido\n```\n\n---\n\n## 4. ⚠️ Pendências\n\n- [ ] Registar Nº SNS / utente de Désirée (ainda não disponível)\n- [ ] **Vacinas — calendário vacinal** (0-6 meses: VHB, BCG, RV, DTPa, Hib, VIP, VPC13)\n- [ ] Consulta de saúde infantil — 1 mês, 2 meses, 4 meses, 6 meses\n- [ ] Inscrição em Centro de Saúde (UCSP Almada)\n- [ ] Verificar NISS de Désirée\n\n---\n\n## 5. Contactos de Saúde\n\n| Área | Contacto |\n|---|---|\n| Hospital nascimento | ULS Almada-Seixal — 212 940 294 |\n| CS a inscrever | UCSP Almada / ACES Almada-Seixal |\n\n---\n\n*Nota gerada automaticamente em 2026-06-29 a partir dos documentos em pCloud.*\n*Fontes: 2026/Registro Désirée (Declaração de nascimento, Assento, Cartão Cidadão)*"
+          }
+        ],
+        "dieta": {
+          "titulo": "Dieta — Perda de Peso (21-07-2026)",
+          "ficheiro": "Dieta - Perda de Peso 2026.07.21.md",
+          "markdown": "⚠️ Se a Sara Sofia já tiver uma versão mais recente do plano (mencionada como \"versão 3, out/2025\"), essa prevalece — este documento é um cardápio de apoio para seguir já, com base nos princípios que ela definiu.\n\n---\n\n## Princípios (mantidos do plano original)\n\n- Equilíbrio proteína/carboidratos em todas as refeições principais.\n- Máx. **1 colher de sopa de azeite** por refeição.\n- Lacticínios sempre na versão proteica (iogurte grego, skyr, queijo magro).\n- Fruta variada, sem repetir a mesma 2 dias seguidos.\n- Défice calórico moderado (~300-500 kcal/dia abaixo da manutenção) — sem cortes drásticos.\n- Água: mínimo 1,5-2L/dia.\n\n---\n\n## Estrutura diária\n\n| Hora | Refeição | Objetivo |\n|---|---|---|\n| 08:00 | Pequeno-almoço | Proteína + carboidrato de baixo IG |\n| 09:30 | Meio da manhã | 150g fruta |\n| 12:00 | Almoço | Sopa/salada + 1/4 acompanhamento + 1/4 proteína |\n| 16:30 | Lanche | Proteína leve + fruta ou oleaginosas |\n| 20:00 | Jantar | Igual ao almoço (mais leve) ou sopa + proteína magra |\n\n---\n\n## Cardápio — 7 dias\n\n### Segunda-feira\n- **08:00** — Iogurte grego natural (0%) + 30g aveia + canela\n- **09:30** — 1 maçã\n- **12:00** — Sopa de legumes + salada + 120g frango grelhado + 1 colher arroz integral\n- **16:30** — 2 ovos cozidos + punhado de nozes (6-7 un.)\n- **20:00** — Sopa de legumes + 100g pescada no forno + legumes salteados (1 c. sopa azeite)\n\n### Terça-feira\n- **08:00** — Pão escuro (1 fatia) + queijo fresco magro + tomate\n- **09:30** — 150g morangos\n- **12:00** — Salada de grão-de-bico, atum e vegetais (1 c. sopa azeite)\n- **16:30** — Skyr + 1 kiwi\n- **20:00** — Creme de legumes + omelete de 2 ovos com espinafres\n\n### Quarta-feira\n- **08:00** — Tapioca + 1 fatia fiambre de peru + queijo magro\n- **09:30** — 1 pera\n- **12:00** — Arroz integral + 120g peru grelhado + salada verde\n- **16:30** — Iogurte grego + 1 colher de chá mel + canela\n- **20:00** — Sopa + 120g salmão grelhado + brócolos no vapor\n\n### Quinta-feira\n- **08:00** — Iogurte grego + granola caseira sem açúcar + 100g mirtilos\n- **09:30** — 1 laranja\n- **12:00** — Massa integral + molho de tomate + 120g frango desfiado + salada\n- **16:30** — Queijo cottage + tomate cherry\n- **20:00** — Sopa de abóbora + 100g bacalhau cozido + legumes\n\n### Sexta-feira\n- **08:00** — Pão escuro + ovo mexido + abacate (1/4)\n- **09:30** — 150g melão ou meloa\n- **12:00** — Quinoa + 120g peixe branco + legumes assados (1 c. sopa azeite)\n- **16:30** — Skyr + amêndoas (6-7 un.)\n- **20:00** — Sopa + omelete de claras com cogumelos\n\n### Sábado\n- **08:00** — Panquecas de aveia e banana (sem açúcar) + iogurte grego\n- **09:30** — 1 pêssego\n- **12:00** — Refeição livre equilibrada (proteína + vegetais + 1 porção de carboidrato) — evitar fritos e refrigerantes\n- **16:30** — Fruta + punhado de frutos secos\n- **20:00** — Sopa + 120g proteína magra + salada\n\n### Domingo\n- **08:00** — Iogurte grego + fruta + 1 c. sopa aveia\n- **09:30** — 150g uvas\n- **12:00** — Arroz integral + 120g carne magra grelhada + legumes\n- **16:30** — Queijo fresco + tomate\n- **20:00** — Sopa + 2 ovos cozidos + salada verde\n\n---\n\n## Trocas permitidas (para variar sem sair da estrutura)\n\n- **Proteínas (100-120g):** frango, peru, peixe branco, salmão, atum, ovos, tofu.\n- **Carboidratos de baixo IG (1 porção):** arroz integral, quinoa, batata-doce, massa integral, pão escuro.\n- **Vegetais:** à vontade, cozidos, salteados ou crus (exceto batata frita).\n- **Fruta (150g):** maçã, pera, laranja, morangos, kiwi, mirtilos, pêssego, melão — variar sempre.\n- **Gordura:** 1 c. sopa azeite/refeição, ou 6-7 frutos secos como alternativa no lanche.\n\n## Evitar\n- Açúcar refinado, refrigerantes, fritos, pão branco e doces industrializados.\n- Álcool fora da refeição livre de sábado (com moderação).\n\n---\n\n## Pendências\n- [ ] Confirmar com a Sara Sofia se existe versão mais recente do plano (pós out/2025) e substituir este cardápio se houver.\n- [ ] Ajustar porções de proteína/carboidrato consoante evolução de peso a cada 2-3 semanas."
+        }
+      }
+    </script>
 
-  if (DATA.dieta) {
-    document.getElementById("diet-print").innerHTML =
-      '<div class="content"><h2 class="sec">🥗 ' + DATA.dieta.titulo + " · " + titular.nome + "</h2>" +
-      renderMarkdown(DATA.dieta.markdown) + "</div>";
-  }
-}
+    <script>
+      // ====== Mini parser Markdown → HTML ======
+      function inline(t) {
+        return t
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+          .replace(/\*(.+?)\*/g, "<em>$1</em>")
+          .replace(/`(.+?)`/g, "<code>$1</code>");
+      }
+      function renderMarkdown(md) {
+        const lines = (md || "").replace(/\r/g, "").split("\n");
+        let html = "",
+          i = 0;
+        while (i < lines.length) {
+          let line = lines[i];
+          if (line.trim().startsWith("```")) {
+            i++;
+            let buf = [];
+            while (i < lines.length && !lines[i].trim().startsWith("```")) {
+              buf.push(lines[i]);
+              i++;
+            }
+            i++;
+            html +=
+              '<pre class="timeline">' +
+              buf
+                .join("\n")
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;") +
+              "</pre>";
+            continue;
+          }
+          if (
+            line.includes("|") &&
+            i + 1 < lines.length &&
+            /^\s*\|?[\s:|-]+\|?\s*$/.test(lines[i + 1]) &&
+            lines[i + 1].includes("-")
+          ) {
+            const parseRow = (r) =>
+              r
+                .replace(/^\s*\|/, "")
+                .replace(/\|\s*$/, "")
+                .split("|")
+                .map((c) => c.trim());
+            const header = parseRow(line);
+            i += 2;
+            let rows = [];
+            while (
+              i < lines.length &&
+              lines[i].includes("|") &&
+              lines[i].trim() !== ""
+            ) {
+              rows.push(parseRow(lines[i]));
+              i++;
+            }
+            html +=
+              '<div class="tbl-wrap"><table><thead><tr>' +
+              header.map((h) => "<th>" + inline(h) + "</th>").join("") +
+              "</tr></thead><tbody>";
+            for (const r of rows)
+              html +=
+                "<tr>" +
+                r.map((c) => "<td>" + inline(c) + "</td>").join("") +
+                "</tr>";
+            html += "</tbody></table></div>";
+            continue;
+          }
+          let m;
+          if ((m = line.match(/^####\s+(.*)/))) {
+            html += "<h4>" + inline(m[1]) + "</h4>";
+            i++;
+            continue;
+          }
+          if ((m = line.match(/^###\s+(.*)/))) {
+            html += "<h3>" + inline(m[1]) + "</h3>";
+            i++;
+            continue;
+          }
+          if ((m = line.match(/^##\s+(.*)/))) {
+            html += '<h2 class="sec">' + inline(m[1]) + "</h2>";
+            i++;
+            continue;
+          }
+          if ((m = line.match(/^#\s+(.*)/))) {
+            html += "<h3>" + inline(m[1]) + "</h3>";
+            i++;
+            continue;
+          }
+          if (/^---+\s*$/.test(line)) {
+            html += "<hr>";
+            i++;
+            continue;
+          }
+          if (line.trim().startsWith(">")) {
+            let buf = [];
+            while (i < lines.length && lines[i].trim().startsWith(">")) {
+              buf.push(lines[i].replace(/^\s*>\s?/, ""));
+              i++;
+            }
+            const joined = buf.join(" ");
+            html +=
+              '<blockquote class="' +
+              (/⚠️/.test(joined) ? "warn" : "") +
+              '">' +
+              inline(joined) +
+              "</blockquote>";
+            continue;
+          }
+          if (/^\s*-\s+/.test(line)) {
+            let buf = [];
+            while (i < lines.length && /^\s*-\s+/.test(lines[i])) {
+              buf.push(lines[i]);
+              i++;
+            }
+            html += "<ul>";
+            for (let item of buf) {
+              const raw = item.replace(/^\s*-\s+/, "");
+              const task = raw.match(/^\[([ xX])\]\s+(.*)/);
+              if (task) {
+                const done = task[1].toLowerCase() === "x";
+                html +=
+                  '<li class="task' +
+                  (done ? " done" : "") +
+                  '"><span class="box"></span>' +
+                  inline(task[2]) +
+                  "</li>";
+              } else {
+                html += "<li>" + inline(raw) + "</li>";
+              }
+            }
+            html += "</ul>";
+            continue;
+          }
+          if (line.trim() !== "") {
+            html += "<p>" + inline(line) + "</p>";
+          }
+          i++;
+        }
+        return html;
+      }
 
-function selectPerson(id) {
-  currentPerson = id;
-  document.querySelectorAll(".tab").forEach(t => t.classList.toggle("active", t.dataset.person === id));
-  document.querySelectorAll(".panel").forEach(pn => pn.classList.toggle("active", pn.id === "panel-" + id));
-  window.scrollTo({ top: 0, behavior: "smooth" });
-}
+      // ====== Carregar dados (fetch saude.json → fallback embutido) ======
+      let DATA = null;
+      let currentPerson = null;
 
-// ====== PDF ======
-const dateStr = new Date().toLocaleDateString("pt-PT", { day: "2-digit", month: "long", year: "numeric" });
-function printFull() {
-  const p = DATA.pessoas.find(x => x.id === currentPerson);
-  document.getElementById("print-title").textContent = "Histórico de Saúde — " + p.nome;
-  document.getElementById("print-sub").textContent = "Consolidado da pasta 07. Saúde · gerado a " + dateStr;
-  document.body.classList.remove("print-diet");
-  document.body.classList.add("print-full");
-  window.print();
-}
-function printDiet() {
-  const titular = DATA.pessoas.find(p => p.titular) || DATA.pessoas[0];
-  document.getElementById("print-title").textContent = (DATA.dieta ? DATA.dieta.titulo : "Dieta") + " · " + titular.nome;
-  document.getElementById("print-sub").textContent = "Cardápio e horários · gerado a " + dateStr;
-  document.body.classList.remove("print-full");
-  document.body.classList.add("print-diet");
-  window.print();
-}
-window.onafterprint = () => document.body.classList.remove("print-full", "print-diet");
+      async function carregar() {
+        try {
+          const resp = await fetch("saude.json", { cache: "no-store" });
+          if (!resp.ok) throw new Error("HTTP " + resp.status);
+          DATA = await resp.json();
+        } catch (e) {
+          try {
+            const raw = document.getElementById("fallback-data").textContent;
+            DATA = JSON.parse(raw);
+            console.info(
+              "saude.json não acessível (" +
+                e.message +
+                ") — a usar fallback embutido.",
+            );
+          } catch (e2) {
+            document.getElementById("main").innerHTML =
+              '<div class="loading">⚠️ Não foi possível carregar <code>saude.json</code>. ' +
+              "Gere o ficheiro e coloque-o nesta pasta.</div>";
+            return;
+          }
+        }
+        construir();
+      }
 
-carregar();
-</script>
-</body>
+      function roleDe(p) {
+        if (p.titular) return "Titular" + (p.idade ? " · " + p.idade : "");
+        return p.idade || "Familiar";
+      }
+
+      function construir() {
+        const tabsEl = document.getElementById("tabs");
+        const mainEl = document.getElementById("main");
+        tabsEl.innerHTML = "";
+        mainEl.innerHTML = "";
+
+        document.getElementById("stamp").textContent = DATA.gerado_em
+          ? "· atualizado " + DATA.gerado_em
+          : "";
+
+        const titular = DATA.pessoas.find((p) => p.titular) || DATA.pessoas[0];
+
+        DATA.pessoas.forEach((p, idx) => {
+          const first = idx === 0;
+          const tab = document.createElement("button");
+          tab.className = "tab" + (first ? " active" : "");
+          tab.dataset.person = p.id;
+          tab.innerHTML =
+            '<span class="dot"></span>' +
+            p.emoji +
+            " " +
+            p.primeiro_nome +
+            (p.idade ? ' <span class="age">' + p.idade + "</span>" : "");
+          tab.onclick = () => selectPerson(p.id);
+          tabsEl.appendChild(tab);
+
+          const panel = document.createElement("section");
+          panel.className = "panel" + (first ? " active" : "");
+          panel.id = "panel-" + p.id;
+          let inner =
+            '<div class="person-head"><div class="avatar">' +
+            p.emoji +
+            "</div>" +
+            "<div><h2>" +
+            p.nome +
+            '</h2><div class="sub">' +
+            roleDe(p) +
+            "</div></div></div>";
+          inner +=
+            '<div class="content">' + renderMarkdown(p.markdown) + "</div>";
+
+          if (p.id === titular.id && DATA.dieta) {
+            inner +=
+              '<div class="diet-banner no-print"><div class="t"><b>🥗 ' +
+              DATA.dieta.titulo +
+              "</b>" +
+              "<span>Cardápio e horários — clique para gerar o PDF da dieta</span></div>" +
+              '<button class="btn primary" onclick="printDiet()">Gerar PDF da Dieta</button></div>';
+            inner +=
+              '<div class="content" style="margin-top:24px"><h2 class="sec">🥗 ' +
+              DATA.dieta.titulo +
+              " (cardápio ativo)</h2>" +
+              renderMarkdown(DATA.dieta.markdown) +
+              "</div>";
+          }
+          panel.innerHTML = inner;
+          mainEl.appendChild(panel);
+        });
+
+        currentPerson = DATA.pessoas[0].id;
+
+        if (DATA.dieta) {
+          document.getElementById("diet-print").innerHTML =
+            '<div class="content"><h2 class="sec">🥗 ' +
+            DATA.dieta.titulo +
+            " · " +
+            titular.nome +
+            "</h2>" +
+            renderMarkdown(DATA.dieta.markdown) +
+            "</div>";
+        }
+      }
+
+      function selectPerson(id) {
+        currentPerson = id;
+        document
+          .querySelectorAll(".tab")
+          .forEach((t) =>
+            t.classList.toggle("active", t.dataset.person === id),
+          );
+        document
+          .querySelectorAll(".panel")
+          .forEach((pn) =>
+            pn.classList.toggle("active", pn.id === "panel-" + id),
+          );
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+
+      // ====== PDF ======
+      const dateStr = new Date().toLocaleDateString("pt-PT", {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+      });
+      function printFull() {
+        const p = DATA.pessoas.find((x) => x.id === currentPerson);
+        document.getElementById("print-title").textContent =
+          "Histórico de Saúde — " + p.nome;
+        document.getElementById("print-sub").textContent =
+          "Consolidado da pasta 07. Saúde · gerado a " + dateStr;
+        document.body.classList.remove("print-diet");
+        document.body.classList.add("print-full");
+        window.print();
+      }
+      function printDiet() {
+        const titular = DATA.pessoas.find((p) => p.titular) || DATA.pessoas[0];
+        document.getElementById("print-title").textContent =
+          (DATA.dieta ? DATA.dieta.titulo : "Dieta") + " · " + titular.nome;
+        document.getElementById("print-sub").textContent =
+          "Cardápio e horários · gerado a " + dateStr;
+        document.body.classList.remove("print-full");
+        document.body.classList.add("print-diet");
+        window.print();
+      }
+      window.onafterprint = () =>
+        document.body.classList.remove("print-full", "print-diet");
+
+      carregar();
+    </script>
+  </body>
 </html>
